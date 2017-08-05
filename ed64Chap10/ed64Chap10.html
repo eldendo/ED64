@@ -1,0 +1,309 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Win32)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGED" CONTENT="20090303;16180012">
+	<META NAME="CHANGEDBY" CONTENT="eldendo">
+	<META NAME="CHANGEDBY" CONTENT="eldendo">
+	<META NAME="CHANGEDBY" CONTENT="eldendo">
+	<META NAME="CHANGEDBY" CONTENT="eldendo">
+	<META NAME="CHANGEDBY" CONTENT="eldendo">
+	<META NAME="CHANGEDBY" CONTENT="eldendo">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { size: 21.59cm 27.94cm; margin: 2.01cm }
+		P { margin-bottom: 0.2cm; background: transparent }
+		H1 { margin-bottom: 0.2cm }
+		H1.western { font-family: "Nimbus Sans L", sans-serif; font-size: 16pt }
+		H1.cjk { font-family: "DejaVu Sans"; font-size: 16pt }
+		H1.ctl { font-family: "DejaVu Sans"; font-size: 16pt }
+		PRE { font-family: "Nimbus Roman No9 L" }
+		H2.western { font-family: "Albany", sans-serif; font-size: 14pt; font-style: italic }
+		H2.cjk { font-family: "HG Mincho Light J"; font-size: 14pt; font-style: italic }
+		H2.ctl { font-family: "Arial Unicode MS"; font-size: 14pt; font-style: italic }
+		H3.western { font-family: "Albany", sans-serif }
+		H3.cjk { font-family: "HG Mincho Light J" }
+		H3.ctl { font-family: "Arial Unicode MS" }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1 CLASS="western" ALIGN=CENTER STYLE="border: 1.00pt solid #000000; padding: 0.05cm">
+ED64 - HOW TO WRITE A COMMODORE 64 EMULATOR<BR>Copyright 2006 - 2009
+by ir. Marc Dendooven</H1>
+<H1 CLASS="western" ALIGN=CENTER STYLE="border: 1.00pt solid #000000; padding: 0.05cm">
+Chapter 10: The VIC - part 3 : other video modes. 
+</H1>
+<H2 CLASS="western">Preface</H2>
+<P>It has been a while since I wrote a chapter for this project. I
+wrote the code for this chapter in the summer of 2008 but I wasn't
+completely happy with it. So I published the executable as a
+development version. Then I lost interest. Recently I am receiving
+emails asking me to continue with this project. So I decided to bring
+this chapter presenting the code as it is. 
+</P>
+<H2 CLASS="western">Introduction</H2>
+<P>In the two last chapters we extended the VIC emulation. But we
+still can only display text. Here we will introduce other video
+modes: Multicolor mode, extended color mode, bitmap mode and
+multicolor bitmap mode.</P>
+<H2 CLASS="western">Some changes and renaming</H2>
+<P>In the previous chapter we used <B>screenAddress</B> and
+<B>charRomAddress</B>. In other screenmodes this naming will be
+confusing. We will talk here about the <B>VideoMatrix</B> (VM), the
+<B>PixelMatrix</B> (PM) and the <B>ColorMatrix</B> (CM). The begin
+address of this matrices will be <B>VMbase</B>, <B>PMbase</B> and
+<B>CMbase</B>. These addresses will be absolute addresses and not
+relative to the current videobank. So we replace: 
+</P>
+<P><B>bankAddress+screenAddress</B> by <B>VMbase</B></P>
+<P><B>bankAddress+charRomAddress</B> by <B>PMbase</B></P>
+<P><B>CMbase</B> is a constant (<B>$D800</B>)</P>
+<P>in unit memio we will rename <B>watchVicFrom, watchVicTo </B><SPAN STYLE="font-weight: medium">and</SPAN>
+<B>setVicWatchRange</B> to <B>watchVicVMFrom, watchVicVMTo </B><SPAN STYLE="font-weight: medium">and</SPAN>
+<B>setVicVMWatchRange</B>.</P>
+<P>Since not only the VM should be monitored, we will provide the
+same functionality for the PM. (<B>watchVicPMFrom, watchVicPMTo </B><SPAN STYLE="font-weight: medium">and</SPAN>
+<B>setVicPMWatchRange</B>)</P>
+<P>At last we will rename the procedurecall <B>vicText </B><SPAN STYLE="font-weight: medium">to
+</SPAN><B>vicVMupdate</B>. A new procedure <B>vicPMupdate</B> will be
+added to the VIC interface. See <A HREF="memio.pas.html">memio.pas</A>
+for the changes in the memio unit.</P>
+<H3 CLASS="western">Remark:</H3>
+<P>a. In chapter 9 we didn't watch the PM. An update of the PM (= the
+characterset in chap 9) did not change any characters already
+displayed on the screen. 
+</P>
+<P>b. It is not necessary to monitor the CM since an access is
+already dispatched by colorWrite.</P>
+<H2 CLASS="western">Videomodes</H2>
+<P>The videomode of the c64 is determinated by bit 6 en 7 of register
+$D011 and bit 5 of reg $D016. Since these bit's aren't overlapping
+each other we can easely generate a unique code for the videomode by
+isolating this bits and combining them in one byte:</P>
+<P STYLE="border: 1.00pt solid #000000; padding: 0.05cm"><FONT FACE="FreeMono, monospace">vidMode
+:= (reg[$D011] and $60) or (reg[$D016] and $10);</FONT></P>
+<P>The valid combinations for vidMode are:</P>
+<P><B>$00 : SCM Simple Character Mode</B></P>
+<P><B>$10 : MCCM Multi Color Character Mode</B></P>
+<P><B>$40 : ECCM Extended Color Character Mode</B></P>
+<P><B>$20 : SBMM Simple BitMap Mode</B></P>
+<P><B>$30 : MCBMM Multi Color BitMap Mode</B></P>
+<P>we will define these as constants.</P>
+<P>Bit 6 selects bitmapmode. We define the boolean:</P>
+<P STYLE="border: 1.00pt solid #000000; padding: 0.05cm"><FONT FACE="FreeMono, monospace">bmm
+:= boolean (vidMode and $20);</FONT></P>
+<P>The lenght of the PM is variable: we will store it in PMlenght. In
+a charactermode PMlenght is 1999, in bitmapmode it is 7999. 
+</P>
+<H2 CLASS="western">Reflecting register changes.</H2>
+<P>Every poke to a vic register will change the state of the VIC. We
+can intercept them the usual way using a case instruction in
+vicWrite, changing only what is necessary. To make code simple I
+chose here to make all changes in one procedure called setVicValues.
+This procedure is called every time a change to the state of the VIC
+is provoked. Again, this is not performant, but will produce simple
+code.</P>
+<PRE STYLE="border: 1.00pt solid #000000; padding: 0.05cm"><FONT FACE="FreeMono, monospace">procedure setVicValues;</FONT>
+<FONT FACE="FreeMono, monospace">begin</FONT>
+        <FONT FACE="FreeMono, monospace">vidMode := (reg[$D011] and $60) or (reg[$D016] and $10);</FONT>
+        <FONT FACE="FreeMono, monospace">bmm := boolean (vidmode and $20);</FONT>
+        <FONT FACE="FreeMono, monospace">VMbase := bankAddress + (reg[$D018] shr 4)*$400;</FONT>
+        <FONT FACE="FreeMono, monospace">if bmm then begin</FONT>
+                        <FONT FACE="FreeMono, monospace">PMbase := bankAddress + (reg[$D018] and $08)*$400;</FONT>
+                        <FONT FACE="FreeMono, monospace">PMlenght := 7999</FONT>
+                     <FONT FACE="FreeMono, monospace">end</FONT>
+               <FONT FACE="FreeMono, monospace">else begin</FONT>
+                        <FONT FACE="FreeMono, monospace">PMbase := bankAddress + (reg[$D018] and $0E)*$400;</FONT>
+                        <FONT FACE="FreeMono, monospace">PMlenght := 1999</FONT>
+                     <FONT FACE="FreeMono, monospace">end;</FONT>
+        <FONT FACE="FreeMono, monospace">setVicVMwatchRange(VMbase,VMbase+999);</FONT>
+        <FONT FACE="FreeMono, monospace">setVicPMwatchRange(PMbase,PMbase+PMlenght);</FONT>
+<FONT FACE="FreeMono, monospace">//    refresh</FONT>
+<FONT FACE="FreeMono, monospace">end;</FONT></PRE><P>
+when the state of the VIC is changed, the screen should be refreshed
+to reflect the new state:</P>
+<PRE STYLE="border: 1.00pt solid #000000; padding: 0.05cm"><FONT FACE="FreeMono, monospace">procedure refresh;</FONT>
+<FONT FACE="FreeMono, monospace">var i : word;</FONT>
+<FONT FACE="FreeMono, monospace">begin</FONT>
+        <FONT FACE="FreeMono, monospace">for i := 0 to 999 do poke (VMbase+i,peek(VMbase+i))</FONT>
+<FONT FACE="FreeMono, monospace">end;</FONT></PRE><P>
+The refresh slows down the emulator. Especially at startup. So I
+disabled it by putting it in a comment. Most programs have no problem
+with that. But it should be reactivated for a exact emulation. Remark
+the difference between the behavior of PRINT CHR$(14) with this
+refresh enabled or disabled.</P>
+<H2 CLASS="western">Writing to the VM</H2>
+<P>when a poke to the VM occurs, vicVMupdate is called. This routine
+dispatches the call in function of vidMode:</P>
+<PRE STYLE="border: 1.00pt solid #000000; padding: 0.05cm"><FONT FACE="FreeMono, monospace">procedure vicVMupdate(pos: word; val: byte);</FONT>
+<FONT FACE="FreeMono, monospace">begin</FONT>
+    <FONT FACE="FreeMono, monospace">case vidMode of</FONT>
+        <FONT FACE="FreeMono, monospace">SCM  : updateSCM (pos,val);</FONT>
+        <FONT FACE="FreeMono, monospace">MCCM : updateMCCM(pos,val);</FONT>
+        <FONT FACE="FreeMono, monospace">ECCM : updateECCM(pos,val);</FONT>
+        <FONT FACE="FreeMono, monospace">SBMM : updateSBMM(pos,val);</FONT>
+        <FONT FACE="FreeMono, monospace">MCBMM: updateMCBMM(pos,val);</FONT>
+    <FONT FACE="FreeMono, monospace">else</FONT>
+            <FONT FACE="FreeMono, monospace">aWriteLn ('WARNING: Undefined Video Mode !')</FONT>
+    <FONT FACE="FreeMono, monospace">end</FONT>
+<FONT FACE="FreeMono, monospace">end;</FONT></PRE><H3 CLASS="western">
+Simple Character Mode</H3>
+<P>updateSCM is simply the old vicText procedure:</P>
+<PRE STYLE="border: 1.00pt solid #000000; padding: 0.05cm"><FONT FACE="FreeMono, monospace">procedure updateSCM(pos: word; val: byte);</FONT>
+<FONT FACE="FreeMono, monospace">var x0,y0,x,y:integer;</FONT>
+<FONT FACE="FreeMono, monospace">begin</FONT>
+       <FONT FACE="FreeMono, monospace">x0:=(pos mod 40)*8;</FONT>
+       <FONT FACE="FreeMono, monospace">y0:=(pos div 40)*8;</FONT>
+       <FONT FACE="FreeMono, monospace">for x:=0 to 7 do</FONT>
+          <FONT FACE="FreeMono, monospace">for y := 0 to 7 do</FONT>
+             <FONT FACE="FreeMono, monospace">if boolean(vicPeek(PMbase+val*8+y) and ($80 shr x))</FONT>
+                   <FONT FACE="FreeMono, monospace">then setPixel(x0+x,y0+y,color_ram[CMbase+pos])</FONT>
+                   <FONT FACE="FreeMono, monospace">else setPixel(x0+x,y0+y,reg[$D021])</FONT>
+<FONT FACE="FreeMono, monospace">end;</FONT></PRE><H3 CLASS="western">
+Extended Color Character Mode</H3>
+<P>In this mode only the lower 6 bits determinate the character
+(limiting the possible characters to 64). The upper two bits
+determinate the background color (defined in VIC register $D021 to
+$D024). The code is straightforward:</P>
+<PRE STYLE="border: 1.00pt solid #000000; padding: 0.05cm"><FONT FACE="FreeMono, monospace">procedure updateECCM(pos: word; val: byte);</FONT>
+<FONT FACE="FreeMono, monospace">var x0,y0,x,y:integer;</FONT>
+    <FONT FACE="FreeMono, monospace">bg : byte;</FONT>
+<FONT FACE="FreeMono, monospace">begin</FONT>
+       <FONT FACE="FreeMono, monospace">x0:=(pos mod 40)*8;</FONT>
+       <FONT FACE="FreeMono, monospace">y0:=(pos div 40)*8;</FONT>
+       <FONT FACE="FreeMono, monospace">bg := (val and $C0) shr 6;</FONT>
+       <FONT FACE="FreeMono, monospace">val := val and $3F;</FONT>
+       <FONT FACE="FreeMono, monospace">for x:=0 to 7 do</FONT>
+          <FONT FACE="FreeMono, monospace">for y := 0 to 7 do</FONT>
+             <FONT FACE="FreeMono, monospace">if boolean(vicPeek(PMbase+val*8+y) and ($80 shr x))</FONT>
+                   <FONT FACE="FreeMono, monospace">then setPixel(x0+x,y0+y,color_ram[CMbase+pos])</FONT>
+                   <FONT FACE="FreeMono, monospace">else setPixel(x0+x,y0+y,reg[$D021+bg])</FONT>
+<FONT FACE="FreeMono, monospace">end;</FONT></PRE><H3 CLASS="western">
+Multi Color Character Mode</H3>
+<P>if bit 4 of the colorram is 0, SCM is used (limiting the number of
+colors to 8). If it is one, a 4 pixel characterpattern is used. For
+each pixels two bits allow to chose between the colors taken from:</P>
+<P><B>00 : reg[$D021]</B></P>
+<P><B>01 : reg[$D022]</B></P>
+<P><B>10 : reg[$D023]</B></P>
+<P><B>11 : the three lower bits of the colorram.</B></P>
+<P>Remark that we should still put 8 pixels on the screen (4 times 2
+equal pixels). This is done by shifting right by (2*((7-x) div 2)).
+div is an integer divide so the result of this formula is always
+even. The same value is calculated for x=i and x=i+1, i being an even
+number. 
+</P>
+<P><BR><BR>
+</P>
+<PRE STYLE="border: 1.00pt solid #000000; padding: 0.05cm"><FONT FACE="FreeMono, monospace">procedure updateMCCM(pos: word; val: byte);</FONT>
+<FONT FACE="FreeMono, monospace">var x0,y0,x,y:integer;</FONT>
+<FONT FACE="FreeMono, monospace">begin</FONT>
+    <FONT FACE="FreeMono, monospace">if boolean(color_ram[CMbase+pos] and $8)</FONT>
+        <FONT FACE="FreeMono, monospace">then</FONT>
+            <FONT FACE="FreeMono, monospace">begin</FONT>
+                <FONT FACE="FreeMono, monospace">x0:=(pos mod 40)*8;</FONT>
+                <FONT FACE="FreeMono, monospace">y0:=(pos div 40)*8;</FONT>
+                <FONT FACE="FreeMono, monospace">for x:=0 to 7 do</FONT>
+                    <FONT FACE="FreeMono, monospace">for y := 0 to 7 do</FONT>
+                        <FONT FACE="FreeMono, monospace">case (vicPeek(PMbase+val*8+y) shr (2*((7-x) div 2))) and 3 of</FONT>
+                            <FONT FACE="FreeMono, monospace">0 : setPixel(x0+x,y0+y,reg[$D021]);</FONT>
+                            <FONT FACE="FreeMono, monospace">1 : setPixel(x0+x,y0+y,reg[$D022]);</FONT>
+                            <FONT FACE="FreeMono, monospace">2 : setPixel(x0+x,y0+y,reg[$D023]);</FONT>
+                            <FONT FACE="FreeMono, monospace">3 : setPixel(x0+x,y0+y,color_ram[CMbase+pos] and $7)</FONT>
+                        <FONT FACE="FreeMono, monospace">end</FONT>
+            <FONT FACE="FreeMono, monospace">end</FONT>
+        <FONT FACE="FreeMono, monospace">else updateSCM (pos,val)</FONT>
+<FONT FACE="FreeMono, monospace">end;</FONT></PRE><H3 CLASS="western">
+Simple BitMap Mode</H3>
+<P>This mode is very simular to SCM. The first difference is that it
+is not the value of the character that is used as an index in the PM,
+but the position in the VM. The second difference is that the VM is
+used instead of the CM to generate a color. The lower 4 bits are used
+as foreground and the higher 4 bits as backgroundcolor.</P>
+<PRE STYLE="border: 1.00pt solid #000000; padding: 0.05cm"><FONT FACE="FreeMono, monospace">procedure updateSBMM(pos: word; val: byte);</FONT>
+<FONT FACE="FreeMono, monospace">var x0,y0,x,y:integer;</FONT>
+<FONT FACE="FreeMono, monospace">begin</FONT>
+       <FONT FACE="FreeMono, monospace">x0:=(pos mod 40)*8;</FONT>
+       <FONT FACE="FreeMono, monospace">y0:=(pos div 40)*8;</FONT>
+       <FONT FACE="FreeMono, monospace">for x:=0 to 7 do</FONT>
+          <FONT FACE="FreeMono, monospace">for y := 0 to 7 do</FONT>
+             <FONT FACE="FreeMono, monospace">if boolean(vicPeek(PMbase+pos*8+y) and ($80 shr x))</FONT>
+                   <FONT FACE="FreeMono, monospace">then setPixel(x0+x,y0+y,(val and $F0) shr 4)</FONT>
+                   <FONT FACE="FreeMono, monospace">else setPixel(x0+x,y0+y,val and $0F)</FONT>
+<FONT FACE="FreeMono, monospace">end;</FONT></PRE><H3 CLASS="western">
+Multi Color BitMap Mode</H3>
+<P>If you understand SBMM and MCCM then this mode will be clear to
+you: it is a bitmapmode where two consecutive bits are used to
+generate one of four colors taken from:</P>
+<P><B>00 : reg[$D021]</B></P>
+<P><B>01 : the upper nibble of the byte in the VM</B></P>
+<P><B>10 : the lower nibble of the byte in the VM</B></P>
+<P><B>11 : The CM </B>
+</P>
+<PRE STYLE="border: 1.00pt solid #000000; padding: 0.05cm"><FONT FACE="FreeMono, monospace">procedure updateMCBMM(pos: word; val: byte);</FONT>
+<FONT FACE="FreeMono, monospace">var x0,y0,x,y:integer;</FONT>
+<FONT FACE="FreeMono, monospace">begin</FONT>
+        <FONT FACE="FreeMono, monospace">x0:=(pos mod 40)*8;</FONT>
+        <FONT FACE="FreeMono, monospace">y0:=(pos div 40)*8;</FONT>
+        <FONT FACE="FreeMono, monospace">for x:=0 to 7 do</FONT>
+           <FONT FACE="FreeMono, monospace">for y := 0 to 7 do</FONT>
+              <FONT FACE="FreeMono, monospace">case (vicPeek(PMbase+pos*8+y) shr (2*((7-x) div 2))) and 3 of</FONT>
+                            <FONT FACE="FreeMono, monospace">0 : setPixel(x0+x,y0+y,reg[$D021]);</FONT>
+                            <FONT FACE="FreeMono, monospace">1 : setPixel(x0+x,y0+y,(val and $F0) shr 4);</FONT>
+                            <FONT FACE="FreeMono, monospace">2 : setPixel(x0+x,y0+y,val and $0F);</FONT>
+                            <FONT FACE="FreeMono, monospace">3 : setPixel(x0+x,y0+y,color_ram[CMbase+pos])</FONT>
+              <FONT FACE="FreeMono, monospace">end</FONT>
+<FONT FACE="FreeMono, monospace">end;</FONT></PRE><H2 CLASS="western">
+Writing to the PM</H2>
+<P>when a write to the PM area occurs in bitmapmode, the screen
+should be updated. This can be done very simple but very inefficient
+by calculating the corresponding position in the VM, and call the
+update routine for the VM.</P>
+<P>A write to the PM in charactermode is less simple: we simply do
+not know what to update since we do not know if and where that
+character is already used on the screen. The only solution here is a
+complete refresh of the screen.</P>
+<PRE STYLE="border: 1.00pt solid #000000; padding: 0.05cm"><FONT FACE="FreeMono, monospace">procedure vicPMupdate(pos: word; val: byte);</FONT>
+<FONT FACE="FreeMono, monospace">begin</FONT>
+    <FONT FACE="FreeMono, monospace">if bmm      then vicVMupdate(pos div 8, vicPeek(VMbase+(pos div 8)))</FONT>
+<FONT FACE="FreeMono, monospace">//                else refresh;</FONT>
+<FONT FACE="FreeMono, monospace">end;</FONT></PRE><P>
+It will be clear that these refreshes will be too heavy. In fact the
+pascal program crashes for an unknown reason when trying to execute.
+So the refresh has been disabled.</P>
+<H3 CLASS="western">Remarks:</H3>
+<P>a. without this refresh a modified character will be correct if
+used after the update of it's bitpattern. Characters already on the
+screen will not be updated. (like it was in chapter 9)</P>
+<P>b. A possible solution could be setting a 'refresh needed' flag
+when refresh is needed, and check this flag at regular times (e.g.
+once in a second). If set a refresh is executed.</P>
+<H2 CLASS="western" STYLE="font-style: normal">Conclusion</H2>
+<P ALIGN=LEFT STYLE="font-style: normal">a. We implemented the
+different screen modes, but there is (much) room for optimization.
+Especially the PM update is too heavy: each poke to a PM location
+provokes an update of the complete square (8 bytes). Things should be
+done the other way around: a PM update should modify one byte, and a
+VM update should call the PM update 8 times. 
+</P>
+<P ALIGN=LEFT>b. I didn't test all the modes since I have no example
+c64 programs for them all. Mail me if you find any bugs (or if you
+have some simple c64 test program). I included a hires testprogram
+(hires.prg). Also Simon's Basic runs on the emulator. I included a
+Simon's Basic hires program (circle.prg).</P>
+<P ALIGN=LEFT>c. The next logical step should be the implementation
+of sprites. But this will be very heavy. Probably too heavy for this
+emulator model. Next chapter will be an evaluation of this project.</P>
+<P ALIGN=LEFT><BR><BR>
+</P>
+<P ALIGN=LEFT>See program files: <A HREF="./ed64.pas.html">ed64.pas</A>,
+<A HREF="./memio.pas.html">memio.pas</A>,<A HREF="./vic.pas.html">vic.pas</A>
+and <A HREF="./SystemAbstraction.pas.html">SystemAbstraction.pas</A>
+. <BR><BR><BR><BR><BR>
+</P>
+</BODY>
+</HTML>

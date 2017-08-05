@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/1999/REC-html401-19991224/strict.dtd">
+<html>
+<head>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<title>Exported from Notepad++</title>
+<style type="text/css">
+span {
+	font-family: 'Courier New';
+	font-size: 10pt;
+	color: #000000;
+}
+.sc0 {
+	color: #808080;
+}
+.sc2 {
+	font-size: 8pt;
+	color: #008000;
+}
+.sc3 {
+	font-size: 8pt;
+	color: #008080;
+}
+.sc4 {
+	color: #FF8000;
+}
+.sc5 {
+	font-weight: bold;
+	color: #0000FF;
+}
+.sc7 {
+	color: #808080;
+}
+.sc10 {
+	font-weight: bold;
+	color: #000080;
+}
+.sc11 {
+}
+</style>
+</head>
+<body>
+<div style="float: left; white-space: pre; line-height: 1; background: #FFFFFF; "><span class="sc3">(*****************************************************************
+* SystemAbstraction unit                                         *
+* This file is part of ED64                                      *
+* Copyright (c) 2006 - 2009 by ir. Marc Dendooven                *
+* Version: Chapter 10 (same as chapter 9)                        *
+*****************************************************************)</span><span class="sc0">
+</span><span class="sc5">Unit</span><span class="sc0"> </span><span class="sc11">SystemAbstraction</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(****************************************************************)</span><span class="sc0">
+</span><span class="sc5">interface</span><span class="sc0">
+
+</span><span class="sc5">type</span><span class="sc0"> </span><span class="sc11">nibble</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">15</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">openScreen</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">closeScreen</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">setPixel</span><span class="sc10">(</span><span class="sc11">x</span><span class="sc10">,</span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">color</span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">nibble</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">closeScreenRequest</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">Boolean</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">aWriteLn</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">s</span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">string</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">aKeyPressed</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">aReadKey</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">char</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">getFileName</span><span class="sc10">(</span><span class="sc11">msg</span><span class="sc10">:</span><span class="sc5">string</span><span class="sc10">):</span><span class="sc0"> </span><span class="sc5">string</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(****************************************************************)</span><span class="sc0">
+</span><span class="sc5">implementation</span><span class="sc0">
+
+</span><span class="sc5">uses</span><span class="sc0"> </span><span class="sc11">WinGraph</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">WinCRT</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">memio</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">gd</span><span class="sc10">,</span><span class="sc11">gm</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">integer</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">PixelSize</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">openscreen</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">res</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">char</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc7">'Choose graphic resolution'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc7">'0. Default       4. 1024x768'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc7">'1. 320x200       5. 1280x1024'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc7">'2. 640x480       6. Maximized'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc7">'3. 800x600       7. Fullscreen'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc7">'Your choise : (another value sets to Default) '</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">readln</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">res</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc11">res</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0">
+        </span><span class="sc7">'1'</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">gm</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">m320x200</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc7">'2'</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">gm</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">m640x480</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc7">'3'</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">gm</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">m800x600</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc7">'4'</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">gm</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">m1024x768</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc7">'5'</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">gm</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">m1280x1024</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc7">'6'</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">gm</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">mMaximized</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc7">'7'</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">gm</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">mFullscr</span><span class="sc0">
+        </span><span class="sc5">else</span><span class="sc0">
+            </span><span class="sc11">gm</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">mDefault</span><span class="sc0">
+    </span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+    </span><span class="sc11">gd</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">D8bit</span><span class="sc10">;</span><span class="sc0">
+
+    </span><span class="sc11">initgraph</span><span class="sc10">(</span><span class="sc11">gd</span><span class="sc10">,</span><span class="sc11">gm</span><span class="sc10">,</span><span class="sc7">'ED64'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">graphresult</span><span class="sc0"> </span><span class="sc10">&lt;&gt;</span><span class="sc0"> </span><span class="sc11">grOK</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0">
+    </span><span class="sc5">begin</span><span class="sc0">
+            </span><span class="sc11">writeln</span><span class="sc10">(</span><span class="sc7">'graphic mode not supported'</span><span class="sc10">);</span><span class="sc0">
+            </span><span class="sc11">readln</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc11">halt</span><span class="sc10">(</span><span class="sc4">1</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">pixelsize</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">getMaxX</span><span class="sc10">+</span><span class="sc4">1</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">div</span><span class="sc0"> </span><span class="sc4">320</span><span class="sc10">;</span><span class="sc0">
+
+    </span><span class="sc11">SetBkColor</span><span class="sc10">(</span><span class="sc4">14</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">ClearDevice</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">setviewport</span><span class="sc10">((</span><span class="sc11">getmaxX</span><span class="sc10">-</span><span class="sc4">320</span><span class="sc10">*</span><span class="sc11">pixelSize</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">div</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">,(</span><span class="sc11">getMaxY</span><span class="sc10">-</span><span class="sc4">200</span><span class="sc10">*</span><span class="sc11">pixelSize</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">div</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">,</span><span class="sc11">getmaxX</span><span class="sc10">,</span><span class="sc11">getMaxY</span><span class="sc10">,</span><span class="sc11">clipoff</span><span class="sc10">);</span><span class="sc0">
+
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">0</span><span class="sc10">,</span><span class="sc11">black</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">1</span><span class="sc10">,</span><span class="sc11">white</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">2</span><span class="sc10">,</span><span class="sc11">red</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">3</span><span class="sc10">,</span><span class="sc11">cyan</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">4</span><span class="sc10">,</span><span class="sc11">purple</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">5</span><span class="sc10">,</span><span class="sc11">green</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">6</span><span class="sc10">,</span><span class="sc11">blue</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">7</span><span class="sc10">,</span><span class="sc11">yellow</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">8</span><span class="sc10">,</span><span class="sc11">orange</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">9</span><span class="sc10">,</span><span class="sc11">brown</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">10</span><span class="sc10">,</span><span class="sc11">lightred</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">11</span><span class="sc10">,</span><span class="sc11">darkgray</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">12</span><span class="sc10">,</span><span class="sc11">gray</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">13</span><span class="sc10">,</span><span class="sc11">lightgreen</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">14</span><span class="sc10">,</span><span class="sc11">lightblue</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setPalette</span><span class="sc10">(</span><span class="sc4">15</span><span class="sc10">,</span><span class="sc11">lightgray</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">closeScreen</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">closeGraph</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">setPixel</span><span class="sc10">(</span><span class="sc11">x</span><span class="sc10">,</span><span class="sc11">y</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">color</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">nibble</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+</span><span class="sc2">//    putpixel(x,y,color)</span><span class="sc0">
+    </span><span class="sc11">setFillStyle</span><span class="sc10">(</span><span class="sc11">solidFill</span><span class="sc10">,</span><span class="sc11">color</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">Bar</span><span class="sc10">(</span><span class="sc11">x</span><span class="sc10">*</span><span class="sc11">pixelSize</span><span class="sc10">,</span><span class="sc11">y</span><span class="sc10">*</span><span class="sc11">pixelSize</span><span class="sc10">,(</span><span class="sc11">x</span><span class="sc10">+</span><span class="sc4">1</span><span class="sc10">)*</span><span class="sc11">pixelSize</span><span class="sc10">-</span><span class="sc4">1</span><span class="sc10">,(</span><span class="sc11">y</span><span class="sc10">+</span><span class="sc4">1</span><span class="sc10">)*</span><span class="sc11">pixelSize</span><span class="sc10">-</span><span class="sc4">1</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">closeScreenRequest</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">Boolean</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">closeScreenRequest</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">closeGraphRequest</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">aWriteLn</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">s</span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">string</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">writeBuf</span><span class="sc10">(</span><span class="sc11">s</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">aKeyPressed</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">aKeyPressed</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">keyPressed</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">aReadKey</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">char</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">aReadKey</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">readKey</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">getFileName</span><span class="sc10">(</span><span class="sc11">msg</span><span class="sc10">:</span><span class="sc5">string</span><span class="sc10">):</span><span class="sc0"> </span><span class="sc5">string</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">filename</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">string</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">writebuf</span><span class="sc10">(</span><span class="sc11">msg</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">readbuf</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">filename</span><span class="sc10">,</span><span class="sc4">40</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">getFileName</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">filename</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">end.</span><span class="sc0">
+</span></div></body>
+</html>

@@ -1,0 +1,944 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/1999/REC-html401-19991224/strict.dtd">
+<html>
+<head>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<title>Exported from Notepad++</title>
+<style type="text/css">
+span {
+	font-family: 'Courier New';
+	font-size: 10pt;
+	color: #000000;
+}
+.sc0 {
+	color: #808080;
+}
+.sc2 {
+	font-size: 8pt;
+	color: #008000;
+}
+.sc3 {
+	font-size: 8pt;
+	color: #008080;
+}
+.sc4 {
+	color: #FF8000;
+}
+.sc5 {
+	font-weight: bold;
+	color: #0000FF;
+}
+.sc7 {
+	color: #808080;
+}
+.sc9 {
+	color: #804000;
+}
+.sc10 {
+	font-weight: bold;
+	color: #000080;
+}
+.sc11 {
+}
+</style>
+</head>
+<body>
+<div style="float: left; white-space: pre; line-height: 1; background: #FFFFFF; "><span class="sc3">(*****************************************************************
+* ED64 : EL DENDO's Commodore 64 emulator                        *
+* Copyright (c) 2006 - 2009 by ir. Marc Dendooven                *
+* Version : Chapter 10 (same as chapter 9)                       *
+*****************************************************************)</span><span class="sc0">
+</span><span class="sc5">program</span><span class="sc0"> </span><span class="sc11">ED64</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">uses</span><span class="sc0"> </span><span class="sc11">memio</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">SystemAbstraction</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">SysUtils</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">DateUtils</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(*****************************************************************
+* 6510 registers                                                 *
+*****************************************************************)</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc10">,</span><span class="sc11">X</span><span class="sc10">,</span><span class="sc11">Y</span><span class="sc10">,</span><span class="sc11">S</span><span class="sc10">,</span><span class="sc11">P</span><span class="sc10">,</span><span class="sc11">IR</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(*****************************************************************
+* help variabels                                                 *
+*****************************************************************)</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0">
+</span><span class="sc2">//        trace : boolean;</span><span class="sc0">
+
+        </span><span class="sc11">startTime</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">TDateTime</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">timer50hz</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">Int64</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">20</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc3">(******************************************************************
+* Emulator help procedures and functions                                                  *
+******************************************************************)</span><span class="sc0">
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">error</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">s</span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">string</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">closeScreen</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">(</span><span class="sc7">'--------------------------------------'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">(</span><span class="sc7">'emulator error: '</span><span class="sc10">,</span><span class="sc11">s</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">(</span><span class="sc7">'PC='</span><span class="sc10">,</span><span class="sc11">hexstr</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">-</span><span class="sc4">1</span><span class="sc10">,</span><span class="sc4">4</span><span class="sc10">),</span><span class="sc7">' IR='</span><span class="sc10">,</span><span class="sc11">hexstr</span><span class="sc10">(</span><span class="sc11">IR</span><span class="sc10">,</span><span class="sc4">2</span><span class="sc10">));</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">(</span><span class="sc7">'Execution has been ended'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">(</span><span class="sc7">'push return to exit'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">(</span><span class="sc7">'--------------------------------------'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">readln</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">halt</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">peek2</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">*</span><span class="sc0"> </span><span class="sc4">256</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(*
+procedure dump1;
+begin
+        write('PC=',hexstr(PC,4),' IR=',hexstr(IR,2));
+end;
+
+procedure dump2;
+begin
+        writeln(' A=',hexstr(A,2),' X=',hexstr(X,2),' Y=',hexstr(Y,2),
+        ' S=',hexstr(S,2),' P=',binstr(P,8));
+end;
+*)</span><span class="sc0">
+
+</span><span class="sc3">(******************************************************************
+* load and save routines                                          *
+******************************************************************)</span><span class="sc0">
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">load_prg</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">filename</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">string</span><span class="sc0"> </span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">basic</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0">     </span><span class="sc11">f</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">file</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">b</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc9">{$i-}</span><span class="sc0">
+        </span><span class="sc11">assign</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">,</span><span class="sc11">filename</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">reset</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc9">{$i+}</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">ioresult</span><span class="sc0"> </span><span class="sc10">&lt;&gt;</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc0">
+        </span><span class="sc5">then</span><span class="sc0">
+                </span><span class="sc11">aWriteLn</span><span class="sc10">(</span><span class="sc7">'No file named '</span><span class="sc10">+</span><span class="sc11">filename</span><span class="sc10">)</span><span class="sc0">
+        </span><span class="sc5">else</span><span class="sc0">
+           </span><span class="sc5">begin</span><span class="sc0">
+                </span><span class="sc5">read</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">,</span><span class="sc11">b</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">b</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">read</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">,</span><span class="sc11">b</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">b</span><span class="sc10">*</span><span class="sc4">256</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">basic</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc4">2048</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc5">while</span><span class="sc0"> </span><span class="sc5">not</span><span class="sc0"> </span><span class="sc11">eof</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">do</span><span class="sc0">
+                    </span><span class="sc5">begin</span><span class="sc0">
+                        </span><span class="sc5">read</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">,</span><span class="sc11">b</span><span class="sc10">);</span><span class="sc0">
+                        </span><span class="sc11">poke</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc11">b</span><span class="sc10">);</span><span class="sc0">
+                        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">)</span><span class="sc0">
+                    </span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">close</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc11">poke</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc4">$2D</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">));</span><span class="sc0">
+                </span><span class="sc11">poke</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc4">$2E</span><span class="sc10">,</span><span class="sc11">hi</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">));</span><span class="sc0">
+                </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc4">$A52A</span><span class="sc0">
+           </span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">save_prg</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">filename</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">string</span><span class="sc0"> </span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">from_address</span><span class="sc10">,</span><span class="sc11">to_address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0">     </span><span class="sc11">f</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">file</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">i</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">assign</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">,</span><span class="sc11">filename</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">rewrite</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc5">write</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">from_address</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc5">write</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">,</span><span class="sc11">hi</span><span class="sc10">(</span><span class="sc11">from_address</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc5">for</span><span class="sc0"> </span><span class="sc11">i</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">from_address</span><span class="sc0"> </span><span class="sc5">to</span><span class="sc0"> </span><span class="sc11">to_address</span><span class="sc0"> </span><span class="sc5">do</span><span class="sc0"> </span><span class="sc5">write</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">,</span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">i</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">close</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(******************************************************************
+* Keyboard routine                                                *
+******************************************************************)</span><span class="sc0">
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">addkey</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0">     </span><span class="sc11">buff</span><span class="sc10">,</span><span class="sc11">ch</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">filename</span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">string</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">buff</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc4">$C6</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">buff</span><span class="sc0"> </span><span class="sc10">&lt;</span><span class="sc0"> </span><span class="sc4">10</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0">
+                </span><span class="sc5">begin</span><span class="sc0">   </span><span class="sc11">ch</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">ord</span><span class="sc10">(</span><span class="sc11">upcase</span><span class="sc10">(</span><span class="sc11">aReadKey</span><span class="sc10">));</span><span class="sc0">
+                        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">ch</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0">
+                           </span><span class="sc5">begin</span><span class="sc0">
+                                </span><span class="sc11">ch</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">ord</span><span class="sc10">(</span><span class="sc11">aReadKey</span><span class="sc10">);</span><span class="sc0">
+                                </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc11">ch</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0">
+                                </span><span class="sc4">$48</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ch</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc4">145</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc2">//up</span><span class="sc0">
+                                </span><span class="sc4">$4b</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ch</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc4">157</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc2">//left</span><span class="sc0">
+                                </span><span class="sc4">$50</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ch</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0">  </span><span class="sc4">17</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc2">//down</span><span class="sc0">
+                                </span><span class="sc4">$4D</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ch</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0">  </span><span class="sc4">29</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc2">//right</span><span class="sc0">
+                                 </span><span class="sc4">82</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ch</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc4">148</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc2">//inst-del</span><span class="sc0">
+                                 </span><span class="sc4">133</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">begin</span><span class="sc0">
+                                         </span><span class="sc11">fileName</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">getFileName</span><span class="sc10">(</span><span class="sc7">'EMULATOR LOAD. FILENAME: '</span><span class="sc10">);</span><span class="sc0">
+                                         </span><span class="sc11">load_prg</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">filename</span><span class="sc10">+</span><span class="sc7">'.prg'</span><span class="sc10">,</span><span class="sc11">true</span><span class="sc10">)</span><span class="sc0">
+                                       </span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+                                 </span><span class="sc4">135</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">begin</span><span class="sc0">
+                                         </span><span class="sc11">fileName</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">getFileName</span><span class="sc10">(</span><span class="sc7">'EMULATOR LOAD,x,1. FILENAME: '</span><span class="sc10">);</span><span class="sc0">
+                                         </span><span class="sc11">load_prg</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">filename</span><span class="sc10">+</span><span class="sc7">'.prg'</span><span class="sc10">,</span><span class="sc11">false</span><span class="sc10">)</span><span class="sc0">
+                                       </span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+                                 </span><span class="sc4">134</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">begin</span><span class="sc0">
+                                         </span><span class="sc11">fileName</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">getFileName</span><span class="sc10">(</span><span class="sc7">'EMULATOR SAVE. FILENAME: '</span><span class="sc10">);</span><span class="sc0">
+                                         </span><span class="sc11">save_prg</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">filename</span><span class="sc10">+</span><span class="sc7">'.prg'</span><span class="sc10">,</span><span class="sc4">2048</span><span class="sc10">,</span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc4">$2D</span><span class="sc10">))</span><span class="sc0">
+                                       </span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+                                </span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+                           </span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+                        </span><span class="sc11">poke</span><span class="sc10">(</span><span class="sc4">$0277</span><span class="sc10">+</span><span class="sc11">buff</span><span class="sc10">,</span><span class="sc11">ch</span><span class="sc10">);</span><span class="sc0">
+                        </span><span class="sc11">poke</span><span class="sc10">(</span><span class="sc4">$C6</span><span class="sc10">,</span><span class="sc11">buff</span><span class="sc10">+</span><span class="sc4">1</span><span class="sc10">)</span><span class="sc0">
+                </span><span class="sc5">end</span><span class="sc0">
+
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(******************************************************************
+* Addressing modes: functions which return the address for        *
+* instructions to work upon                                       *
+******************************************************************)</span><span class="sc0">
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">imm</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">imm</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">PC</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">zp</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">zp</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">zpx</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">zpx</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)+</span><span class="sc11">X</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">zpy</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">zpy</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)+</span><span class="sc11">Y</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">abs</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">abs</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">,</span><span class="sc4">2</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">absx</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">absx</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">X</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">,</span><span class="sc4">2</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">absy</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">absy</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">Y</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">,</span><span class="sc4">2</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">ind</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">ind</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">,</span><span class="sc4">2</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">indx</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">indx</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc11">byte</span><span class="sc10">(</span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)+</span><span class="sc11">X</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">indy</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">indy</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">))</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">Y</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(********************************************************************
+* Actions on Status Register (P)    NV.BDIZC                        *
+********************************************************************)</span><span class="sc0">
+
+</span><span class="sc5">const</span><span class="sc0">
+        </span><span class="sc11">C</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">$01</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">Z</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">$02</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">I</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">$04</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">D</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">$08</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">$10</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">V</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">$40</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">N</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">$80</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">setflag</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">flag</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">status</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">status</span><span class="sc0">       </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">P</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">P</span><span class="sc0"> </span><span class="sc5">or</span><span class="sc0"> </span><span class="sc11">flag</span><span class="sc0">
+                        </span><span class="sc5">else</span><span class="sc0"> </span><span class="sc11">P</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">P</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc5">not</span><span class="sc0"> </span><span class="sc11">flag</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">flagset</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">flag</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">flagset</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc10">(</span><span class="sc11">P</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc11">flag</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(********************************************************************
+* Stack operations                                                  *
+********************************************************************)</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">push</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">b</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">poke</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc4">$100</span><span class="sc10">+</span><span class="sc11">S</span><span class="sc10">,</span><span class="sc11">b</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">dec</span><span class="sc10">(</span><span class="sc11">S</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">pull</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">S</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">pull</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc4">$100</span><span class="sc10">+</span><span class="sc11">S</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(******************************************************************
+* generic branching instructions                                  *
+******************************************************************)</span><span class="sc0">
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">bfs</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">flag</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">flagset</span><span class="sc10">(</span><span class="sc11">flag</span><span class="sc10">)</span><span class="sc0">   </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">shortint</span><span class="sc10">(</span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">))</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc0">
+                           </span><span class="sc5">else</span><span class="sc0"> </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">bfc</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">flag</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">flagset</span><span class="sc10">(</span><span class="sc11">flag</span><span class="sc10">)</span><span class="sc0">   </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">)</span><span class="sc0">
+                           </span><span class="sc5">else</span><span class="sc0"> </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">shortint</span><span class="sc10">(</span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">))</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(********************************************************************
+* Instructions                                                                              *
+********************************************************************)</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">adc</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0">     </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">val</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">val</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">val</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">flagset</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">SetFlag</span><span class="sc10">(</span><span class="sc11">V</span><span class="sc10">,</span><span class="sc11">boolean</span><span class="sc10">((</span><span class="sc5">not</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">xor</span><span class="sc0"> </span><span class="sc11">val</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc10">((</span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">xor</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0">  </span><span class="sc4">$80</span><span class="sc10">)));</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">&gt;</span><span class="sc0"> </span><span class="sc4">$FF</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">=</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">&gt;=</span><span class="sc0"> </span><span class="sc4">$80</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">sbc</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0">     </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">val</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">val</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc11">val</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc5">not</span><span class="sc0"> </span><span class="sc11">flagset</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">SetFlag</span><span class="sc10">(</span><span class="sc11">V</span><span class="sc10">,</span><span class="sc11">boolean</span><span class="sc10">(((</span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">xor</span><span class="sc0"> </span><span class="sc11">val</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc10">((</span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">xor</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0">  </span><span class="sc4">$80</span><span class="sc10">)));</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">H</span><span class="sc10">&lt;=</span><span class="sc4">$FF</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">and_</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">ora</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">or</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">asl_A</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">boolean</span><span class="sc10">(</span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">$80</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">shl</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">asl</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">boolean</span><span class="sc10">(</span><span class="sc11">B</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">$80</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc5">shl</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">poke</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc11">B</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">B</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">B</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">rol_A</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">flagset</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">boolean</span><span class="sc10">(</span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">$80</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">shl</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">or</span><span class="sc0"> </span><span class="sc4">$01</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">rol</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">flagset</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">boolean</span><span class="sc10">(</span><span class="sc11">B</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">$80</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc5">shl</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc5">or</span><span class="sc0"> </span><span class="sc4">$01</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">poke</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc11">B</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">B</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">B</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">ror_A</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">flagset</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">boolean</span><span class="sc10">(</span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">$01</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">shr</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">or</span><span class="sc0"> </span><span class="sc4">$80</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">ror</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">flagset</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">boolean</span><span class="sc10">(</span><span class="sc11">B</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">$01</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc5">shr</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc5">or</span><span class="sc0"> </span><span class="sc4">$80</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">poke</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc11">B</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">B</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">B</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">lsr_A</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">boolean</span><span class="sc10">(</span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">$01</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">shr</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">false</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">lsr</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">boolean</span><span class="sc10">(</span><span class="sc11">B</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">$01</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">B</span><span class="sc0"> </span><span class="sc5">shr</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">poke</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc11">B</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">B</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">false</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">bit</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">boolean</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">$80</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">V</span><span class="sc10">,</span><span class="sc11">boolean</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">$40</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,(</span><span class="sc11">H</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc10">)=</span><span class="sc4">0</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">brk</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">B</span><span class="sc10">,</span><span class="sc11">true</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">hi</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">P</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">I</span><span class="sc10">,</span><span class="sc11">true</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc4">$FFFE</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">cmp</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">H</span><span class="sc10">&lt;=</span><span class="sc4">$FF</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc10">)=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc10">)&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">cpx</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">X</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">H</span><span class="sc10">&lt;=</span><span class="sc4">$FF</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc10">)=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc10">)&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">cpy</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">Y</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">H</span><span class="sc10">&lt;=</span><span class="sc4">$FF</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc10">)=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc10">)&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">dec_</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">poke</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc11">H</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc10">)=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc10">)&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">dex</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">X</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">X</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">X</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">X</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">dey</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">Y</span><span class="sc0"> </span><span class="sc10">-</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">Y</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc10">)=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc10">)&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">eor</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc5">xor</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">inc_</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">poke</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc11">H</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc10">)=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">H</span><span class="sc10">)&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">inx</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">X</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">X</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">X</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">X</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">iny</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">H</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">Y</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">Y</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">H</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">Y</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">Y</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">jmp</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">address</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">jsr</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">dec</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">hi</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">address</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">rts</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">pull</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">pull</span><span class="sc10">*</span><span class="sc4">256</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">rti</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">P</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">pull</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">pull</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">+</span><span class="sc0"> </span><span class="sc11">pull</span><span class="sc10">*</span><span class="sc4">256</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+
+
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">lda</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">ldx</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">X</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">X</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">X</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">ldy</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">Y</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">Y</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">Y</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">pla</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">pull</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">sta</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">poke</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">stx</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">poke</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">X</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">sty</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">poke</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">Y</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">tax</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">X</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">X</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">X</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">tay</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">Y</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">A</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">Y</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">Y</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">tsx</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">X</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">S</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">X</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">X</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">txa</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">X</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">txs</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">S</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">X</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">tya</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">A</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">Y</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">=</span><span class="sc4">0</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">,</span><span class="sc11">A</span><span class="sc10">&gt;=</span><span class="sc4">$80</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(******************************************************************
+* interrupts and reset                                            *
+******************************************************************)</span><span class="sc0">
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">irq</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc5">not</span><span class="sc0"> </span><span class="sc11">flagset</span><span class="sc10">(</span><span class="sc11">I</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0">
+    </span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">B</span><span class="sc10">,</span><span class="sc11">false</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">hi</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">));</span><span class="sc0">
+        </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">P</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">I</span><span class="sc10">,</span><span class="sc11">true</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc4">$FFFE</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">aKeyPressed</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">addkey</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">timer50Hz</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">timer50Hz</span><span class="sc10">+</span><span class="sc4">20</span><span class="sc0">
+    </span><span class="sc5">end</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">nmi</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">B</span><span class="sc10">,</span><span class="sc11">false</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">hi</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">));</span><span class="sc0">
+    </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">lo</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">));</span><span class="sc0">
+    </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">P</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">I</span><span class="sc10">,</span><span class="sc11">true</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc4">$FFFA</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">reset</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc4">$FFFC</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">I</span><span class="sc10">,</span><span class="sc11">true</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc3">(******************************************************************
+* processor main loop                                             *
+******************************************************************)</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">(</span><span class="sc7">'--------------------------------------'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">(</span><span class="sc7">'Welcome to EL DENDO''s c64 emulator'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">(</span><span class="sc7">'(c) 2006 ir. Marc Dendooven'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">writeln</span><span class="sc10">(</span><span class="sc7">'--------------------------------------'</span><span class="sc10">);</span><span class="sc0">
+
+    </span><span class="sc11">openScreen</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc2">//    trace := true;</span><span class="sc0">
+
+    </span><span class="sc11">PC</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek2</span><span class="sc10">(</span><span class="sc4">$FFFC</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc2">//    cursorOff;</span><span class="sc0">
+
+    </span><span class="sc11">startTime</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">now</span><span class="sc10">;</span><span class="sc0">
+
+
+    </span><span class="sc5">while</span><span class="sc0"> </span><span class="sc11">true</span><span class="sc0"> </span><span class="sc5">do</span><span class="sc0">
+        </span><span class="sc5">begin</span><span class="sc0">
+            </span><span class="sc11">IR</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc2">//            if PC=$fd9a then trace := true;</span><span class="sc0">
+</span><span class="sc2">//            if trace then dump1;</span><span class="sc0">
+            </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">PC</span><span class="sc10">);</span><span class="sc0">
+            </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc11">IR</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0">
+                </span><span class="sc4">$69</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">adc</span><span class="sc10">(</span><span class="sc11">imm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$65</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">adc</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$75</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">adc</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$6D</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">adc</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$7D</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">adc</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$79</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">adc</span><span class="sc10">(</span><span class="sc11">absy</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$61</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">adc</span><span class="sc10">(</span><span class="sc11">indx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$71</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">adc</span><span class="sc10">(</span><span class="sc11">indy</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$29</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">and_</span><span class="sc10">(</span><span class="sc11">imm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$25</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">and_</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$35</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">and_</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$2D</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">and_</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$3D</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">and_</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$39</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">and_</span><span class="sc10">(</span><span class="sc11">absy</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$21</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">and_</span><span class="sc10">(</span><span class="sc11">indx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$31</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">and_</span><span class="sc10">(</span><span class="sc11">indy</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$0A</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">asl_A</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc4">$06</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">asl</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$16</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">asl</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$0E</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">asl</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$1E</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">asl</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$90</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">bfc</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//bcc</span><span class="sc0">
+
+                </span><span class="sc4">$B0</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">bfs</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//bcs</span><span class="sc0">
+
+                </span><span class="sc4">$F0</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">bfs</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//beq</span><span class="sc0">
+
+                </span><span class="sc4">$24</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">bit</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$2C</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">bit</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$30</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">bfs</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//bmi</span><span class="sc0">
+
+                </span><span class="sc4">$D0</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">bfc</span><span class="sc10">(</span><span class="sc11">Z</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//bne</span><span class="sc0">
+
+                </span><span class="sc4">$10</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">bfc</span><span class="sc10">(</span><span class="sc11">N</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//bpl</span><span class="sc0">
+
+                </span><span class="sc4">$00</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">brk</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$50</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">bfc</span><span class="sc10">(</span><span class="sc11">V</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//bvc</span><span class="sc0">
+
+                </span><span class="sc4">$70</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">bfs</span><span class="sc10">(</span><span class="sc11">V</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//bvs</span><span class="sc0">
+
+                </span><span class="sc4">$18</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">false</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//clc</span><span class="sc0">
+
+                </span><span class="sc4">$D8</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">D</span><span class="sc10">,</span><span class="sc11">false</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//cld</span><span class="sc0">
+
+                </span><span class="sc4">$58</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">I</span><span class="sc10">,</span><span class="sc11">false</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//cli</span><span class="sc0">
+
+                </span><span class="sc4">$B8</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">V</span><span class="sc10">,</span><span class="sc11">false</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//clv</span><span class="sc0">
+
+                </span><span class="sc4">$C9</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cmp</span><span class="sc10">(</span><span class="sc11">imm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$C5</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cmp</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$D5</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cmp</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$CD</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cmp</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$DD</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cmp</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$D9</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cmp</span><span class="sc10">(</span><span class="sc11">absy</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$C1</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cmp</span><span class="sc10">(</span><span class="sc11">indx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$D1</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cmp</span><span class="sc10">(</span><span class="sc11">indy</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$E0</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cpx</span><span class="sc10">(</span><span class="sc11">imm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$E4</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cpx</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$EC</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cpx</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$C0</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cpy</span><span class="sc10">(</span><span class="sc11">imm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$C4</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cpy</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$CC</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">cpy</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$C6</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">dec_</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$D6</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">dec_</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$CE</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">dec_</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$DE</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">dec_</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$CA</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">dex</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$88</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">dey</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$49</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">eor</span><span class="sc10">(</span><span class="sc11">imm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$45</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">eor</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$55</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">eor</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$4D</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">eor</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$5D</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">eor</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$59</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">eor</span><span class="sc10">(</span><span class="sc11">absy</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$41</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">eor</span><span class="sc10">(</span><span class="sc11">indx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$51</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">eor</span><span class="sc10">(</span><span class="sc11">indy</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$E6</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">inc_</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$F6</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">inc_</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$EE</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">inc_</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$FE</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">inc_</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$E8</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">inx</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$C8</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">iny</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$4C</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">jmp</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$6C</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">jmp</span><span class="sc10">(</span><span class="sc11">ind</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$20</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">jsr</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$A9</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lda</span><span class="sc10">(</span><span class="sc11">imm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$A5</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lda</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$B5</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lda</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$AD</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lda</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$BD</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lda</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$B9</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lda</span><span class="sc10">(</span><span class="sc11">absy</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$A1</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lda</span><span class="sc10">(</span><span class="sc11">indx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$B1</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lda</span><span class="sc10">(</span><span class="sc11">indy</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$A2</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ldx</span><span class="sc10">(</span><span class="sc11">imm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$A6</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ldx</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$B6</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ldx</span><span class="sc10">(</span><span class="sc11">zpy</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$AE</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ldx</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$BE</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ldx</span><span class="sc10">(</span><span class="sc11">absy</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$A0</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ldy</span><span class="sc10">(</span><span class="sc11">imm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$A4</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ldy</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$B4</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ldy</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$AC</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ldy</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$BC</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ldy</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$4A</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lsr_A</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc4">$46</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lsr</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$56</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lsr</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$4E</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lsr</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$5E</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">lsr</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$EA</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc10">;</span><span class="sc0"> </span><span class="sc2">// nop</span><span class="sc0">
+
+                </span><span class="sc4">$09</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ora</span><span class="sc10">(</span><span class="sc11">imm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$05</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ora</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$15</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ora</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$0D</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ora</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$1D</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ora</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$19</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ora</span><span class="sc10">(</span><span class="sc11">absy</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$01</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ora</span><span class="sc10">(</span><span class="sc11">indx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$11</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ora</span><span class="sc10">(</span><span class="sc11">indy</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$48</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">A</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//pha</span><span class="sc0">
+
+                </span><span class="sc4">$08</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">push</span><span class="sc10">(</span><span class="sc11">P</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//php</span><span class="sc0">
+
+                </span><span class="sc4">$68</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">pla</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$28</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">P</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">pull</span><span class="sc10">;</span><span class="sc0"> </span><span class="sc2">//plp</span><span class="sc0">
+
+                </span><span class="sc4">$2A</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">rol_A</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc4">$26</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">rol</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$36</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">rol</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$2E</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">rol</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$3E</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">rol</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$6A</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ror_A</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc4">$66</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ror</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$76</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ror</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$6E</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ror</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$7E</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ror</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$40</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">rti</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$60</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">rts</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$E9</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sbc</span><span class="sc10">(</span><span class="sc11">imm</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$E5</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sbc</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$F5</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sbc</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$ED</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sbc</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$FD</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sbc</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$F9</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sbc</span><span class="sc10">(</span><span class="sc11">absy</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$E1</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sbc</span><span class="sc10">(</span><span class="sc11">indx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$F1</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sbc</span><span class="sc10">(</span><span class="sc11">indy</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$38</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">C</span><span class="sc10">,</span><span class="sc11">true</span><span class="sc10">);</span><span class="sc0">     </span><span class="sc2">//sec</span><span class="sc0">
+
+                </span><span class="sc4">$F8</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">D</span><span class="sc10">,</span><span class="sc11">true</span><span class="sc10">);</span><span class="sc0">     </span><span class="sc2">//sed</span><span class="sc0">
+
+                </span><span class="sc4">$78</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">setflag</span><span class="sc10">(</span><span class="sc11">I</span><span class="sc10">,</span><span class="sc11">true</span><span class="sc10">);</span><span class="sc0">     </span><span class="sc2">//sei</span><span class="sc0">
+
+                </span><span class="sc4">$85</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sta</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$95</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sta</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$8D</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sta</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$9D</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sta</span><span class="sc10">(</span><span class="sc11">absx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$99</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sta</span><span class="sc10">(</span><span class="sc11">absy</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$81</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sta</span><span class="sc10">(</span><span class="sc11">indx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$91</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sta</span><span class="sc10">(</span><span class="sc11">indy</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$86</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">stx</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$96</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">stx</span><span class="sc10">(</span><span class="sc11">zpy</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$8E</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">stx</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$84</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sty</span><span class="sc10">(</span><span class="sc11">zp</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$94</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sty</span><span class="sc10">(</span><span class="sc11">zpx</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc4">$8C</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">sty</span><span class="sc10">(</span><span class="sc11">abs</span><span class="sc10">);</span><span class="sc0">
+
+                </span><span class="sc4">$AA</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">tax</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$A8</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">tay</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$BA</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">tsx</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$8A</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">txa</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$9A</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">txs</span><span class="sc10">;</span><span class="sc0">
+
+                </span><span class="sc4">$98</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">tya</span><span class="sc10">;</span><span class="sc0">
+            </span><span class="sc5">else</span><span class="sc0">
+                </span><span class="sc11">error</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc7">'unknown instruction '</span><span class="sc10">)</span><span class="sc0">
+            </span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc2">//            if trace then dump2;</span><span class="sc0">
+            </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">millisecondsbetween</span><span class="sc10">(</span><span class="sc11">now</span><span class="sc0"> </span><span class="sc10">,</span><span class="sc11">startTime</span><span class="sc10">)*</span><span class="sc4">6</span><span class="sc0"> </span><span class="sc10">&gt;</span><span class="sc0"> </span><span class="sc11">timer50Hz</span><span class="sc10">*</span><span class="sc4">5</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0">
+                </span><span class="sc5">begin</span><span class="sc0">
+                    </span><span class="sc11">irq</span><span class="sc10">;</span><span class="sc0">
+                    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">CloseScreenRequest</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">error</span><span class="sc10">(</span><span class="sc7">'close button pushed'</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc5">end</span><span class="sc0">
+    </span><span class="sc5">end</span><span class="sc0">
+</span><span class="sc5">end.</span><span class="sc0">
+</span></div></body>
+</html>

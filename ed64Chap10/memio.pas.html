@@ -1,0 +1,197 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/1999/REC-html401-19991224/strict.dtd">
+<html>
+<head>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<title>Exported from Notepad++</title>
+<style type="text/css">
+span {
+	font-family: 'Courier New';
+	font-size: 10pt;
+	color: #000000;
+}
+.sc0 {
+	color: #808080;
+}
+.sc2 {
+	font-size: 8pt;
+	color: #008000;
+}
+.sc3 {
+	font-size: 8pt;
+	color: #008080;
+}
+.sc4 {
+	color: #FF8000;
+}
+.sc5 {
+	font-weight: bold;
+	color: #0000FF;
+}
+.sc7 {
+	color: #808080;
+}
+.sc9 {
+	color: #804000;
+}
+.sc10 {
+	font-weight: bold;
+	color: #000080;
+}
+.sc11 {
+}
+</style>
+</head>
+<body>
+<div style="float: left; white-space: pre; line-height: 1; background: #FFFFFF; "><span class="sc3">(*****************************************************************
+* ED64 : EL DENDO's Commodore 64 emulator                        *
+* Memory and IO unit                                             *
+* (c) 2006 - 2009 by ir. Marc Dendooven                           *
+* Versie Chapter 10                                              *
+*****************************************************************)</span><span class="sc0">
+</span><span class="sc5">unit</span><span class="sc0"> </span><span class="sc11">memio</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc3">(****************************************************************)</span><span class="sc0">
+</span><span class="sc5">interface</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">poke</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc0"> </span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">value</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">function</span><span class="sc0">  </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">function</span><span class="sc0">  </span><span class="sc11">vicPeek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">setVicVMwatchRange</span><span class="sc10">(</span><span class="sc11">startAddress</span><span class="sc10">,</span><span class="sc11">endAddress</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">setVicPMwatchRange</span><span class="sc10">(</span><span class="sc11">startAddress</span><span class="sc10">,</span><span class="sc11">endAddress</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc3">(****************************************************************)</span><span class="sc0">
+
+
+</span><span class="sc5">implementation</span><span class="sc0">
+
+</span><span class="sc5">uses</span><span class="sc0"> </span><span class="sc11">vic</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">var</span><span class="sc0">
+    </span><span class="sc11">ram</span><span class="sc0">         </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">array</span><span class="sc0"> </span><span class="sc10">[</span><span class="sc4">$0000</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$FFFF</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">basic_rom</span><span class="sc0">   </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">array</span><span class="sc0"> </span><span class="sc10">[</span><span class="sc4">$A000</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$BFFF</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">kernal_rom</span><span class="sc0">  </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">array</span><span class="sc0"> </span><span class="sc10">[</span><span class="sc4">$E000</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$FFFF</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">char_rom</span><span class="sc0">    </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">array</span><span class="sc0"> </span><span class="sc10">[</span><span class="sc4">$D000</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$DFFF</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+
+    </span><span class="sc11">loram</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">hiram</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">charen</span><span class="sc0"> </span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">hiANDlo</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">hiORlo</span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc10">;</span><span class="sc0">
+
+    </span><span class="sc11">watchVicVMfrom</span><span class="sc10">,</span><span class="sc11">watchVicVMto</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">watchVicPMfrom</span><span class="sc10">,</span><span class="sc11">watchVicPMto</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">setVicVMwatchRange</span><span class="sc10">(</span><span class="sc11">startAddress</span><span class="sc10">,</span><span class="sc11">endAddress</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">watchVicVMfrom</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">startAddress</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">watchVicVMto</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">endAddress</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">setVicPMwatchRange</span><span class="sc10">(</span><span class="sc11">startAddress</span><span class="sc10">,</span><span class="sc11">endAddress</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">watchVicPMfrom</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">startAddress</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">watchVicPMto</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">endAddress</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">ioport</span><span class="sc10">(</span><span class="sc11">port</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0">     </span><span class="sc11">maskedPort</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc11">maskedPort</span><span class="sc0">     </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">port</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc11">ram</span><span class="sc10">[</span><span class="sc4">0</span><span class="sc10">];</span><span class="sc0">
+        </span><span class="sc11">loram</span><span class="sc0">          </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">maskedport</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">1</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">hiram</span><span class="sc0">          </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">maskedPort</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">2</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">charen</span><span class="sc0">         </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">boolean</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">maskedport</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc4">4</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">hiANDlo</span><span class="sc0">        </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">hiram</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc11">loram</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">hiORlo</span><span class="sc0">         </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">hiram</span><span class="sc0"> </span><span class="sc5">or</span><span class="sc0"> </span><span class="sc11">loram</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">ioIn</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc11">address</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0">
+        </span><span class="sc4">$D000</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$D02E</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ioIn</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">vicRead</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc4">$D800</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$DBFF</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ioIn</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">colorRead</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">else</span><span class="sc0">
+        </span><span class="sc11">ioIn</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc4">$FF</span><span class="sc0">
+    </span><span class="sc5">end</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">ioOut</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc0"> </span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">value</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc11">address</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0">
+        </span><span class="sc4">$D000</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$D02E</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">vicWrite</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc11">value</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc4">$D800</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$DBFF</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">colorWrite</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc0"> </span><span class="sc11">value</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc4">$DD00</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">vicBank</span><span class="sc10">(</span><span class="sc11">value</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">else</span><span class="sc0">
+        </span><span class="sc10">;</span><span class="sc0">   
+    </span><span class="sc5">end</span><span class="sc0"> 
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">poke</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc0"> </span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">value</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">ram</span><span class="sc10">[</span><span class="sc11">address</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">value</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">&gt;=</span><span class="sc0"> </span><span class="sc11">watchVicVMfrom</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">&lt;=</span><span class="sc0"> </span><span class="sc11">watchVicVMto</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">VicVMupdate</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">-</span><span class="sc11">watchVicVMFrom</span><span class="sc10">,</span><span class="sc11">value</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">&gt;=</span><span class="sc0"> </span><span class="sc11">watchVicPMfrom</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">and</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">&lt;=</span><span class="sc0"> </span><span class="sc11">watchVicPMto</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">VicPMupdate</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">-</span><span class="sc11">watchVicPMFrom</span><span class="sc10">,</span><span class="sc11">value</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc11">address</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0">
+        </span><span class="sc4">$0001</span><span class="sc0">        </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">ioport</span><span class="sc10">(</span><span class="sc11">value</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc4">$D000</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$DFFF</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">hiORlo</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">ioOut</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">,</span><span class="sc11">value</span><span class="sc10">);</span><span class="sc0"> </span><span class="sc2">//invloed charen ??</span><span class="sc0">
+    </span><span class="sc5">end</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc11">address</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0">
+        </span><span class="sc4">$A000</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$BFFF</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">hiANDlo</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">basic_rom</span><span class="sc10">[</span><span class="sc11">address</span><span class="sc10">]</span><span class="sc0">
+                                   </span><span class="sc5">else</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">ram</span><span class="sc10">[</span><span class="sc11">address</span><span class="sc10">];</span><span class="sc0">
+        </span><span class="sc4">$D000</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$DFFF</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">hiORlo</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc5">begin</span><span class="sc0">
+                                           </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">charen</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">ioIn</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">)</span><span class="sc0">
+                                                     </span><span class="sc5">else</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">char_rom</span><span class="sc10">[</span><span class="sc11">address</span><span class="sc10">];</span><span class="sc0">
+                                           </span><span class="sc5">end</span><span class="sc0">
+                                   </span><span class="sc5">else</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">ram</span><span class="sc10">[</span><span class="sc11">address</span><span class="sc10">];</span><span class="sc0">
+        </span><span class="sc4">$E000</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$FFFF</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">hiram</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">kernal_rom</span><span class="sc10">[</span><span class="sc11">address</span><span class="sc10">]</span><span class="sc0">
+                                </span><span class="sc5">else</span><span class="sc0"> </span><span class="sc11">peek</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">ram</span><span class="sc10">[</span><span class="sc11">address</span><span class="sc10">];</span><span class="sc0">
+    </span><span class="sc5">else</span><span class="sc0">
+        </span><span class="sc11">peek</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">ram</span><span class="sc10">[</span><span class="sc11">address</span><span class="sc10">]</span><span class="sc0">
+    </span><span class="sc5">end</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">function</span><span class="sc0">  </span><span class="sc11">vicPeek</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc5">case</span><span class="sc0"> </span><span class="sc11">address</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0">
+        </span><span class="sc4">$1000</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$1FFF</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">vicPeek</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">char_rom</span><span class="sc10">[</span><span class="sc11">address</span><span class="sc10">+</span><span class="sc4">$C000</span><span class="sc10">];</span><span class="sc0">
+        </span><span class="sc4">$9000</span><span class="sc0">.</span><span class="sc10">.</span><span class="sc4">$9FFF</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">vicPeek</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">char_rom</span><span class="sc10">[</span><span class="sc11">address</span><span class="sc10">+</span><span class="sc4">$4000</span><span class="sc10">]</span><span class="sc0">
+    </span><span class="sc5">else</span><span class="sc0">
+        </span><span class="sc11">vicPeek</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">ram</span><span class="sc10">[</span><span class="sc11">address</span><span class="sc10">]</span><span class="sc0">
+    </span><span class="sc5">end</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">procedure</span><span class="sc0"> </span><span class="sc11">loadrom</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc5">var</span><span class="sc0"> </span><span class="sc11">rom</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">array</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc0"> </span><span class="sc10">;</span><span class="sc0"> </span><span class="sc11">filename</span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">string</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">var</span><span class="sc0">
+    </span><span class="sc11">f</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc5">file</span><span class="sc0"> </span><span class="sc5">of</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">b</span><span class="sc0"> </span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">byte</span><span class="sc10">;</span><span class="sc0">
+    </span><span class="sc11">address</span><span class="sc10">:</span><span class="sc0"> </span><span class="sc11">word</span><span class="sc10">;</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+        </span><span class="sc9">{$i-}</span><span class="sc0">
+        </span><span class="sc11">assign</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">,</span><span class="sc11">filename</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc11">reset</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc9">{$i+}</span><span class="sc0">
+        </span><span class="sc5">if</span><span class="sc0"> </span><span class="sc11">ioresult</span><span class="sc0"> </span><span class="sc10">&lt;&gt;</span><span class="sc0"> </span><span class="sc4">0</span><span class="sc0"> </span><span class="sc5">then</span><span class="sc0">
+                </span><span class="sc5">begin</span><span class="sc0">
+                        </span><span class="sc11">writeln</span><span class="sc10">(</span><span class="sc7">'file '</span><span class="sc10">,</span><span class="sc11">filename</span><span class="sc10">,</span><span class="sc7">' is missing'</span><span class="sc10">);</span><span class="sc0">
+                        </span><span class="sc11">readln</span><span class="sc10">;</span><span class="sc0">
+                        </span><span class="sc11">halt</span><span class="sc0">
+                </span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">address</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">low</span><span class="sc10">(</span><span class="sc11">rom</span><span class="sc10">);</span><span class="sc0">
+        </span><span class="sc5">while</span><span class="sc0"> </span><span class="sc5">not</span><span class="sc0"> </span><span class="sc11">eof</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">)</span><span class="sc0"> </span><span class="sc5">do</span><span class="sc0">
+        </span><span class="sc5">begin</span><span class="sc0">
+                </span><span class="sc5">read</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">,</span><span class="sc11">b</span><span class="sc10">);</span><span class="sc0">
+                </span><span class="sc11">rom</span><span class="sc10">[</span><span class="sc11">address</span><span class="sc10">]</span><span class="sc0"> </span><span class="sc10">:=</span><span class="sc0"> </span><span class="sc11">b</span><span class="sc10">;</span><span class="sc0">
+                </span><span class="sc11">inc</span><span class="sc10">(</span><span class="sc11">address</span><span class="sc10">)</span><span class="sc0">
+        </span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+        </span><span class="sc11">close</span><span class="sc10">(</span><span class="sc11">f</span><span class="sc10">)</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">initialization</span><span class="sc0">
+</span><span class="sc5">begin</span><span class="sc0">
+    </span><span class="sc11">loadrom</span><span class="sc10">(</span><span class="sc11">kernal_rom</span><span class="sc10">,</span><span class="sc7">'kernal.rom'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">loadrom</span><span class="sc10">(</span><span class="sc11">basic_rom</span><span class="sc10">,</span><span class="sc7">'basic.rom'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">loadrom</span><span class="sc10">(</span><span class="sc11">char_rom</span><span class="sc10">,</span><span class="sc7">'char.rom'</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">poke</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc4">0</span><span class="sc10">,</span><span class="sc4">$FF</span><span class="sc10">);</span><span class="sc0">
+    </span><span class="sc11">poke</span><span class="sc0"> </span><span class="sc10">(</span><span class="sc4">1</span><span class="sc10">,</span><span class="sc4">$FF</span><span class="sc10">);</span><span class="sc0">
+</span><span class="sc5">end</span><span class="sc10">;</span><span class="sc0">
+
+</span><span class="sc5">end.</span><span class="sc0">
+</span></div></body>
+</html>
