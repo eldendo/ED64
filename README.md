@@ -1,5 +1,5 @@
 # ED64
-A Commodore 64 Emulator
+A tutorial in writing a Commodore 64 Emulator (and a c64 emulator)
 
 for Chapter 1 to 9 see https://web.archive.org/web/20080112195019/http://ed64.eldendo.be/  
 
