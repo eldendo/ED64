@@ -1,0 +1,140 @@
+<HTML>
+<HEAD>
+<TITLE>ed64.pas</TITLE>
+<STYLE TYPE="text/css"><!--
+.syntax0 {
+color: #000000;
+}
+.syntax1 {
+color: #cc0000;
+}
+.syntax2 {
+color: #ff8400;
+}
+.syntax3 {
+color: #6600cc;
+}
+.syntax4 {
+color: #cc6600;
+}
+.syntax5 {
+color: #ff0000;
+}
+.syntax6 {
+color: #9966ff;
+}
+.syntax7 {
+background: #ffffcc;
+color: #ff0066;
+}
+.syntax8 {
+color: #006699;
+font-weight: bold;
+}
+.syntax9 {
+color: #009966;
+font-weight: bold;
+}
+.syntax10 {
+color: #0099ff;
+font-weight: bold;
+}
+.syntax11 {
+color: #66ccff;
+font-weight: bold;
+}
+.syntax12 {
+color: #02b902;
+}
+.syntax13 {
+color: #ff00cc;
+}
+.syntax14 {
+color: #cc00cc;
+}
+.syntax15 {
+color: #9900cc;
+}
+.syntax16 {
+color: #6600cc;
+}
+.syntax17 {
+color: #0000ff;
+}
+.syntax18 {
+color: #000000;
+font-weight: bold;
+}
+.gutter {
+background: #dbdbdb;
+color: #000000;
+}
+.gutterH {
+background: #dbdbdb;
+color: #990066;
+}
+-->
+</STYLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF">
+<PRE><SPAN CLASS="gutter">   1:</SPAN><SPAN CLASS="syntax1">(*</SPAN><SPAN CLASS="syntax1">****************************************************************</SPAN>
+<SPAN CLASS="gutter">   2:</SPAN><SPAN CLASS="syntax1">*</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">ED64</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">:</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">EL</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">DENDO's</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">Commodore</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">64</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">emulator</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">*</SPAN>
+<SPAN CLASS="gutter">   3:</SPAN><SPAN CLASS="syntax1">*</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">Copyright</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">2006</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">by</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">ir.</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">Marc</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">Dendooven</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">*</SPAN>
+<SPAN CLASS="gutter">   4:</SPAN><SPAN CLASS="syntax1">*</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">Version:</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">Chapter</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">1</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">*</SPAN>
+<SPAN CLASS="gutterH">   5:</SPAN><SPAN CLASS="syntax1">****************************************************************</SPAN><SPAN CLASS="syntax1">*)</SPAN>
+<SPAN CLASS="gutter">   6:</SPAN><SPAN CLASS="syntax8">program</SPAN> ED64<SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">   7:</SPAN>
+<SPAN CLASS="gutter">   8:</SPAN><SPAN CLASS="syntax8">uses</SPAN> memio<SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">   9:</SPAN>
+<SPAN CLASS="gutterH">  10:</SPAN><SPAN CLASS="syntax1">(*</SPAN><SPAN CLASS="syntax1">****************************************************************</SPAN>
+<SPAN CLASS="gutter">  11:</SPAN><SPAN CLASS="syntax1">*</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">6510</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">registers</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">*</SPAN>
+<SPAN CLASS="gutter">  12:</SPAN><SPAN CLASS="syntax1">****************************************************************</SPAN><SPAN CLASS="syntax1">*)</SPAN>
+<SPAN CLASS="gutter">  13:</SPAN><SPAN CLASS="syntax8">var</SPAN>
+<SPAN CLASS="gutter">  14:</SPAN>        A<SPAN CLASS="syntax18">,</SPAN>X<SPAN CLASS="syntax18">,</SPAN>Y<SPAN CLASS="syntax18">,</SPAN>S<SPAN CLASS="syntax18">,</SPAN>P<SPAN CLASS="syntax18">,</SPAN>IR <SPAN CLASS="syntax18">:</SPAN> <SPAN CLASS="syntax10">byte</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutterH">  15:</SPAN>        PC <SPAN CLASS="syntax18">:</SPAN> <SPAN CLASS="syntax10">word</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  16:</SPAN>
+<SPAN CLASS="gutter">  17:</SPAN><SPAN CLASS="syntax1">(*</SPAN><SPAN CLASS="syntax1">*****************************************************************</SPAN>
+<SPAN CLASS="gutter">  18:</SPAN><SPAN CLASS="syntax1">*</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">Emulator</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">help</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">procedures</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">and</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">functions</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">       </SPAN><SPAN CLASS="syntax1">        </SPAN><SPAN CLASS="syntax1">        </SPAN><SPAN CLASS="syntax1">        </SPAN><SPAN CLASS="syntax1">        </SPAN><SPAN CLASS="syntax1">        </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">*</SPAN>
+<SPAN CLASS="gutter">  19:</SPAN><SPAN CLASS="syntax1">*****************************************************************</SPAN><SPAN CLASS="syntax1">*)</SPAN>
+<SPAN CLASS="gutterH">  20:</SPAN><SPAN CLASS="syntax8">procedure</SPAN> error <SPAN CLASS="syntax18">(</SPAN>s<SPAN CLASS="syntax18">:</SPAN> <SPAN CLASS="syntax8">string</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  21:</SPAN><SPAN CLASS="syntax8">begin</SPAN>
+<SPAN CLASS="gutter">  22:</SPAN>    writeln<SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">--------------------------------------</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  23:</SPAN>    writeln<SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">emulator</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">error:</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">,</SPAN>s<SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  24:</SPAN>    writeln<SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">PC=</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">,</SPAN>hexstr<SPAN CLASS="syntax18">(</SPAN>PC<SPAN CLASS="syntax18">-</SPAN><SPAN CLASS="syntax5">1</SPAN><SPAN CLASS="syntax18">,</SPAN><SPAN CLASS="syntax5">4</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">,</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">IR=</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">,</SPAN>hexstr<SPAN CLASS="syntax18">(</SPAN>IR<SPAN CLASS="syntax18">,</SPAN><SPAN CLASS="syntax5">2</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutterH">  25:</SPAN>    writeln<SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  26:</SPAN>    writeln<SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">Execution</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">has</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">been</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">ended</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  27:</SPAN>    writeln<SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">push</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">return</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">to</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">exit</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  28:</SPAN>    writeln<SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">--------------------------------------</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  29:</SPAN>    readln<SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutterH">  30:</SPAN>    halt
+<SPAN CLASS="gutter">  31:</SPAN><SPAN CLASS="syntax8">end</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  32:</SPAN>
+<SPAN CLASS="gutter">  33:</SPAN><SPAN CLASS="syntax1">(*</SPAN><SPAN CLASS="syntax1">*****************************************************************</SPAN>
+<SPAN CLASS="gutter">  34:</SPAN><SPAN CLASS="syntax1">*</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">processor</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">main</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">loop</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">*</SPAN>
+<SPAN CLASS="gutterH">  35:</SPAN><SPAN CLASS="syntax1">*****************************************************************</SPAN><SPAN CLASS="syntax1">*)</SPAN>
+<SPAN CLASS="gutter">  36:</SPAN><SPAN CLASS="syntax8">begin</SPAN>
+<SPAN CLASS="gutter">  37:</SPAN>    writeln<SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">--------------------------------------</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  38:</SPAN>    writeln<SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">Welcome</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">to</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">EL</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">DENDO</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">s</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">c64</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">emulator</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  39:</SPAN>    writeln<SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">(c)</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">2006</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">ir.</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">Marc</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">Dendooven</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutterH">  40:</SPAN>    writeln<SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">--------------------------------------</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  41:</SPAN>
+<SPAN CLASS="gutter">  42:</SPAN>    poke<SPAN CLASS="syntax18">(</SPAN>$<SPAN CLASS="syntax5">0000</SPAN><SPAN CLASS="syntax18">,</SPAN>$<SPAN CLASS="syntax5">01</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  43:</SPAN>    poke<SPAN CLASS="syntax18">(</SPAN>$<SPAN CLASS="syntax5">0001</SPAN><SPAN CLASS="syntax18">,</SPAN>$<SPAN CLASS="syntax5">00</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  44:</SPAN>    poke<SPAN CLASS="syntax18">(</SPAN>$<SPAN CLASS="syntax5">0002</SPAN><SPAN CLASS="syntax18">,</SPAN>$<SPAN CLASS="syntax5">03</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutterH">  45:</SPAN>    PC <SPAN CLASS="syntax18">:=</SPAN> $<SPAN CLASS="syntax5">0000</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  46:</SPAN>
+<SPAN CLASS="gutter">  47:</SPAN>    <SPAN CLASS="syntax8">while</SPAN> <SPAN CLASS="syntax14">true</SPAN> <SPAN CLASS="syntax8">do</SPAN>
+<SPAN CLASS="gutter">  48:</SPAN>        <SPAN CLASS="syntax8">begin</SPAN>
+<SPAN CLASS="gutter">  49:</SPAN>                IR <SPAN CLASS="syntax18">:=</SPAN> peek<SPAN CLASS="syntax18">(</SPAN>PC<SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutterH">  50:</SPAN>                inc<SPAN CLASS="syntax18">(</SPAN>PC<SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  51:</SPAN>                <SPAN CLASS="syntax8">case</SPAN> IR <SPAN CLASS="syntax8">of</SPAN>
+<SPAN CLASS="gutter">  52:</SPAN>                        $<SPAN CLASS="syntax5">00</SPAN> <SPAN CLASS="syntax18">:</SPAN> writeln <SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">instruction</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">00</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  53:</SPAN>                        $<SPAN CLASS="syntax5">01</SPAN> <SPAN CLASS="syntax18">:</SPAN> writeln <SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">instruction</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">01</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  54:</SPAN>                <SPAN CLASS="syntax8">else</SPAN>
+<SPAN CLASS="gutterH">  55:</SPAN>                        error <SPAN CLASS="syntax18">(</SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax13">unknown</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">instruction</SPAN><SPAN CLASS="syntax13"> </SPAN><SPAN CLASS="syntax13">'</SPAN><SPAN CLASS="syntax18">)</SPAN>
+<SPAN CLASS="gutter">  56:</SPAN>                <SPAN CLASS="syntax8">end</SPAN>
+<SPAN CLASS="gutter">  57:</SPAN>        <SPAN CLASS="syntax8">end</SPAN>
+<SPAN CLASS="gutter">  58:</SPAN><SPAN CLASS="syntax8">end</SPAN><SPAN CLASS="syntax18">.</SPAN>
+</PRE></BODY>
+</HTML>
+

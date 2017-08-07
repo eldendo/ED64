@@ -1,0 +1,13 @@
+--------------------------------------
+Welcome to EL DENDO's c64 emulator
+(c) 2006 ir. Marc Dendooven
+--------------------------------------
+instruction 01
+instruction 00
+--------------------------------------
+emulator error: unknown instruction 
+PC=0002 IR=03
+
+Execution has been ended
+push return to exit
+--------------------------------------

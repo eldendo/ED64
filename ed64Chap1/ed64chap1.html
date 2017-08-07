@@ -1,0 +1,393 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE"
+ content="text/html; charset=windows-1252">
+  <title>ed64Chap1.html</title>
+  <meta name="GENERATOR" content="OpenOffice.org 2.0  (Win32)">
+  <meta name="AUTHOR" content="dendooven.m">
+  <meta name="CREATED" content="20061025;13460000">
+  <meta name="CHANGEDBY" content="Marc Dendooven">
+  <meta name="CHANGED" content="20061208;10275000">
+  <style>
+	<!--
+		@page { size: 8.27in 11.69in; margin: 0.98in }
+		P { margin-bottom: 0.08in; direction: ltr; color: #000000; widows: 2; orphans: 2 }
+		P.western { font-family: "Times New Roman", serif; font-size: 12pt; so-language: fr-FR }
+		P.cjk { font-family: "Times New Roman", serif; font-size: 12pt }
+		P.ctl { font-family: "Times New Roman", serif; font-size: 12pt; so-language: ar-SA }
+		A:link { color: #0000ff }
+		A:visited { color: #800080 }
+	-->
+	</style>
+</head>
+<body dir="ltr" lang="fr-BE" link="#0000ff" text="#000000"
+ vlink="#800080">
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-bottom: 0in;"
+ align="center" lang="en-US">
+<font face="Comic Sans MS, cursive"><b>ED64 - HOW TO WRITE A
+COMMODORE 64 EMULATOR<br>
+&nbsp; Copyright 2007 ir. Marc Dendooven<br>
+Chapter 1: Introduction and
+Emulator Model</b></font></p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"><br>
+</p>
+<ol>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">This document describes how to
+build a simple Commodore 64 emulator. You may wonder why someone
+should spend time writing an emulator of an old machine of which a
+lot of emulators already exists. The answer is simple: because it is
+fun! </font>
+</p>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The main purpose of these
+documents is to let the reader see how an emulator is build.
+Therefore we will emphasis on writing clear, understandable code and
+not on performance. So if you are not interested in the internals of
+this emulator, but just want to execute C64 programs I suggest that
+you use a proven emulator like CCS64.</font></p>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">This document will contain
+different chapters. Each Chapter will add something to the emulator
+and will end with an executable program. </font>
+</p>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">In this first chapter we will
+establish a simple model for the emulator and show how this can be
+programmed.</font></p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"><br>
+</p>
+<ol start="2">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Requirements</b></font></p>
+    <ol>
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Information</b></font></p>
+      </li>
+    </ol>
+  </li>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">To write an emulator, you need a
+good knowledge of the emulated machine. Some experience with machine
+code programming on the c64 will be an advantage. The c64 is a well
+documented machine. I used the “Commodore 64 Programmers
+Reference Guide” (Commodore) and “What’s really
+inside the Commodore 64” (Milton Bathurst). The second book is
+a documented assembler listing of the C64 ROM’s. A lot of
+information can be found on the internet too.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<br>
+</p>
+<ol>
+  <ol start="2">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Compiler</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="fr-FR">
+<span lang="en-US"><font face="Comic Sans MS, cursive">And of course
+you need a compiler. Since an emulator should be fast, it is best
+written in assembler. But then the emulator will be system dependent.
+A better choice is C. C is fast and fairly general. But C code is not
+always that clear to read. Since we will target clarity here, Pascal
+was chosen to write this emulator. I used Freepascal which is a good
+opensource implementation that exist for different operating systems.
+You can find it at </font></span><font color="#0000ff"><u><a
+ href="http://www.freepascal.org/"><span lang="en-US"><font
+ face="Comic Sans MS, cursive">http://www.freepascal.org</font></span></a></u></font><span
+ lang="en-US"><font face="Comic Sans MS, cursive">
+.</font></span></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<br>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<br>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<br>
+</p>
+<ol start="3">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Emulator model</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">While writing this emulator we
+will keep it as simple as possible. We will start with a very small
+model and extend it when needed. </font>
+</p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">An emulator con be written at
+different levels: you can e.g. emulate at the hardware level and use
+a virtual databus, addressbus, controlbus and emulate all hardware
+components as threaded objects which communicate with each other by
+means of this busses. This is probable the best way to write an
+emulator but it will be difficult and slow. </font>
+</p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Here I will emulate the user
+model of the commodore 64: the way a (machine code) programmer sees
+the machine. This is explained in the c64 programmers guide in only a
+few pages.</font></p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">This is quite simple: the user
+sees the registers in the processor (6 registers of 8 bit and 1
+register of 16 bits) and sees the memory as an array of bytes. A
+limited number of machine code instructions are available to process
+the data in the registers and in the memory array. At last we should
+provide a mechanism to execute a machine code program (the main
+processor loop).</font></p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<br>
+</p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">IO hardware in the C64 is memory
+mapped. This means that the user communicates with it by writing to,
+or reading from certain memory locations in the memory map. So it is
+transparent in the user model. At first we will not implement other
+hardware than the processor and the memory. Later we will add what is
+necessary. </font>
+</p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<br>
+</p>
+<div id="Section1" dir="ltr">
+<ol start="4">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Implementation</b></font></p>
+    <ol>
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Memory</b></font></p>
+      </li>
+    </ol>
+  </li>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">The user sees the
+memory as a 64k array of byte. In pascal we can define:</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Courier New, monospace">var<br>
+&nbsp;&nbsp;&nbsp; ram : array [0..$FFFF] of byte;</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">remark : $ stands
+for hexadecimal</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">But that is too
+simple: dependant of the memory configuration a certain range in the
+memory can be occupied by RAM, ROM or even memory mapped hardware.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">We will use a
+technique called data abstraction: we will NEVER access the memory
+immediately, but always by using two ‘methods’ to read and write to the
+memory.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Courier New, monospace">procedure
+poke(address : word ; value : byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; ram[address] :=
+value;<br>
+end;<br>
+<br>
+function
+peek(address : word) : byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; peek :=
+ram[address];<br>
+end;</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">So when we change
+the implementation of the memory later on, and adapt the peek and poke
+methods accordingly without changing the interface (that is the way a
+function appears in a program calling it), the rest of the program
+should not be altered. In Freepascal we can enforce this by putting
+this code in a separate unit.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">See the complete
+code in the file <a href="./memio.pas.html">memio.pas</a></font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<ol>
+  <ol start="2">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Processor registers</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">The registers are
+simply declared in our main program:</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Courier New, monospace">var<br>
+&nbsp;&nbsp;&nbsp; A,X,Y,S,P,IR :
+byte;<br>
+&nbsp;&nbsp;&nbsp; PC : word;</font></p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"><br>
+</p>
+<ol>
+  <ol start="3">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Processor main loop</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">The processor
+executes machine code programs. A machine code program is nothing else
+then a sequence of bytes somewhere in memory. The program counter (PC)
+is a 16 bit register that points to the next byte to be treated. The
+content of that memory location is copied in the instruction register
+(IR) and PC is incremented so that it points to the next memory
+location. The instruction in IR is then interpreted and the whole
+process is started again in an infinite loop.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Courier New, monospace">while true do<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; IR := peek(PC);<br>
+&nbsp;&nbsp;&nbsp; inc(PC);<br>
+&nbsp;&nbsp;&nbsp; case IR of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $00 : … interpret
+instruction $00<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $01 : … interpret
+instruction $01<br>
+&nbsp;&nbsp;&nbsp; …<br>
+&nbsp;&nbsp;&nbsp; else : … unknown
+instruction encountered<br>
+end;<br>
+end.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">Remark that pascal
+has no infinit loop structure. ‘While true do’ will execute well, but
+if the compiler doesn’t optimize this, a check will be performed each
+loop. This will slow up the emulator considerabely.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<ol>
+  <ol start="4">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>The program</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">We can now put
+these lines together into an executable program. To bring the emulator
+in a defined state we will poke some value’s at the beginning of
+memory, and set PC to zero. (or with other words: we will set a fake
+program in memory)</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">You can find the
+main program in the file <a href="./ed64.pas.html">ED64.pas</a></font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">When we compile
+memio.pas and ED64.pas, and execute the code we will see the following
+output:</font></p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"><br>
+</p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Lucida Console, monospace">--------------------------------------<br>
+Welcome to EL
+DENDO's c64 emulator<br>
+(c) 2006 ir.
+Marc Dendooven<br>
+--------------------------------------<br>
+instruction 01<br>
+instruction 00<br>
+--------------------------------------<br>
+emulator error:
+unknown instruction<br>
+PC=0002 IR=03<br>
+<br>
+Execution has
+been ended<br>
+push return to
+exit<br>
+--------------------------------------</font></p>
+<p class="western" style="margin-left: 0.25in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Comic Sans MS, cursive">Quite simple isn’t
+it? The only thing we still need to do is to ‘fill up the case
+instruction’ with the machine code instructions for the 6510 processor.
+This will be done in Chapter 2</font></p>
+<p class="western" style="margin-left: 0.25in; margin-bottom: 0in;"
+ lang="en-US"> <br>
+</p>
+</div>
+</body>
+</html>
