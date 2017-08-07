@@ -1,0 +1,23 @@
+--------------------------------------
+Welcome to EL DENDO's c64 emulator
+(c) 2006 ir. Marc Dendooven
+--------------------------------------
+PC=C000 IR=A2 A=00 X=05 Y=00 S=00 P=00000000
+PC=C002 IR=CA A=00 X=04 Y=00 S=00 P=00000000
+PC=C003 IR=D0 A=00 X=04 Y=00 S=00 P=00000000
+PC=C002 IR=CA A=00 X=03 Y=00 S=00 P=00000000
+PC=C003 IR=D0 A=00 X=03 Y=00 S=00 P=00000000
+PC=C002 IR=CA A=00 X=02 Y=00 S=00 P=00000000
+PC=C003 IR=D0 A=00 X=02 Y=00 S=00 P=00000000
+PC=C002 IR=CA A=00 X=01 Y=00 S=00 P=00000000
+PC=C003 IR=D0 A=00 X=01 Y=00 S=00 P=00000000
+PC=C002 IR=CA A=00 X=00 Y=00 S=00 P=00000010
+PC=C003 IR=D0 A=00 X=00 Y=00 S=00 P=00000010
+PC=C005 IR=FF
+--------------------------------------
+emulator error: unknown instruction 
+PC=C005 IR=FF
+
+Execution has been ended
+push return to exit
+--------------------------------------

@@ -1,0 +1,960 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE"
+ content="text/html; charset=windows-1252">
+  <title></title>
+  <meta name="GENERATOR" content="OpenOffice.org 2.0  (Win32)">
+  <meta name="AUTHOR" content="dendooven.m">
+  <meta name="CREATED" content="20061025;13460000">
+  <meta name="CHANGEDBY" content="Marc Dendooven">
+  <meta name="CHANGED" content="20061208;10335700">
+  <style>
+	<!--
+		@page { size: 8.27in 11.69in; margin: 0.98in }
+		P { margin-bottom: 0.08in; direction: ltr; color: #000000; widows: 2; orphans: 2 }
+		P.western { font-family: "Times New Roman", serif; font-size: 12pt; so-language: fr-FR }
+		P.cjk { font-family: "Times New Roman", serif; font-size: 12pt }
+		P.ctl { font-family: "Times New Roman", serif; font-size: 12pt; so-language: ar-SA }
+		A:link { color: #0000ff }
+		A:visited { color: #800080 }
+	-->
+	</style>
+</head>
+<body dir="ltr" lang="fr-BE" link="#0000ff" text="#000000"
+ vlink="#800080">
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-bottom: 0in;"
+ align="center" lang="en-US">
+<font face="Comic Sans MS, cursive"><b>ED64 - HOW TO WRITE A
+COMMODORE 64 EMULATOR<br>
+Copyright 2006 ir. Marc Dendooven<br>
+Chapter 2 : Emulating the 6510
+instruction set </b></font>
+</p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+<ol>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">In Chapter 1 we created a simple
+emulator model an implemented it.</font></p>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Now we have to add the
+instruction set of the processor.</font></p>
+<ol start="2">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Processor instructions</b></font></p>
+    <ol>
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+      </li>
+    </ol>
+  </li>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">A machine code programmer can use
+three user registers in the processor: A (the accumulator), X and Y
+(the index registers)</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Let’s take two common used
+machine code instructions: LDA and STA.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">LDA stands for Load Accumulator.
+It loads A with a value from memory. STA stands for STore
+Accumulator. It stores the value of A in memory. </font>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">We can implement a machine code
+instruction as a pascal procedure:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure lda (address : word);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; A := peek (address)<br>
+end;<br>
+</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"><font face="Courier New, monospace">procedure sta
+(address : word);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; poke (address, A)<br>
+end;</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The address used depends on the
+memory mode of the instruction.</font></p>
+<ol>
+  <ol start="2">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>memory modes</b></font></p>
+      <ol>
+        <li>
+          <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>immediate mode</b></font></p>
+        </li>
+      </ol>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">LDA# $12 means load the
+accumulator with the value $12</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The corresponding machine code is
+A912</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The value to be loaded in A comes
+immediately after the opcode. This is the place where PC points to
+after that the opcode has been fetched in IR in the main processor
+loop.</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">If we implement a memory mode as
+a pascal function this gives:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function imm : word;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; imm := PC;<br>
+&nbsp;&nbsp;&nbsp; inc(PC)<br>
+end;</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">PC is incremented so it points at
+the next byte in memory.</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Remark: Altering toplevel
+variables in a function is called a ‘side effect’ and is
+considered as bad programming practice. How ever in a low level
+programming project like in an emulator it is often necessary to use
+constructs like these. </font>
+</p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The case entry for LDA in
+immediate mode becomes then:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">$A9 : lda(imm);</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">It will be clear that STA in
+immediate mode makes no sense. It does not existe.</font></p>
+<ol>
+  <ol>
+    <ol start="2">
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>absolute mode</b></font></p>
+      </li>
+    </ol>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">LDA $1234 means load the
+accumulator with the content of memory address $1234</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The corresponding machine code is
+AD3412</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive"><b>Remark : Little endian.</b></font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">When a two byte address is stored
+in two consecutive bytes we speak of ‘big endian’ when
+the high byte is stored first. On the c64 the low byte is stored
+first. This is called little endian. We will create a function to
+read little endian addresses.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function peek2(address : word) :
+word;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; peek2 := peek(address) +
+peek(address+1)*256<br>
+end;</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US"> </p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">using this function we can
+implement absolute mode:</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+</p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US"></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US"><font face="Courier New, monospace">function abs : word;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; abs := peek2(PC);<br>
+&nbsp;&nbsp;&nbsp; inc(PC,2)<br>
+end;</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Remark that instructions in
+absolute mode are three bytes long. So PC should by incremented by 2.</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive"> </font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">in the case we can now write :</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">$AD : lda(abs);<br>
+$8D : sta(abs);</font></p>
+<p class="western" style="margin-left: 1.25in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive"> </font></p>
+<ol>
+  <ol>
+    <ol start="3">
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>absolute, indexed by X</b></font></p>
+      </li>
+    </ol>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">This memory mode is equivalent to
+absolute mode, but the address is incemented by the X register.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function absx : word;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; absx := peek2(PC) + X;<br>
+&nbsp;&nbsp;&nbsp; inc(PC,2)<br>
+end; </font>
+</p>
+<ol>
+  <ol>
+    <ol start="4">
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>absolute, indexed by Y</b></font></p>
+      </li>
+    </ol>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Analogously:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function absy : word;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; absy := peek2(PC) + Y;<br>
+&nbsp;&nbsp;&nbsp; inc(PC,2)<br>
+end;</font></p>
+<ol>
+  <ol>
+    <ol start="5">
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>absolute indirect mode</b></font></p>
+      </li>
+    </ol>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">in this mode, the address after
+the opcode points to a location containing the address to be used.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function ind : word;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; ind := peek2(peek2(PC));<br>
+&nbsp;&nbsp;&nbsp; inc(PC,2)<br>
+end;</font></p>
+<p class="western" style="margin-left: 1.25in; margin-bottom: 0in;"
+ lang="en-US">
+</p>
+<ol>
+  <ol>
+    <ol start="6">
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>zero page mode</b></font></p>
+      </li>
+    </ol>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The processor uses the first 256
+bytes of memory (the zero page) as a special storage area: these
+bytes can be referenced by a one byte address (the high byte is
+zero).</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Using 2 byte addresses takes more
+memory and processor time.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function zp : byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; zp := peek(PC);<br>
+&nbsp;&nbsp;&nbsp; inc(PC)<br>
+end;</font></p>
+<ol>
+  <ol>
+    <ol start="7">
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>zero page, indexed by X</b></font></p>
+      </li>
+    </ol>
+  </ol>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function zpx : byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; zpx := peek(PC)+X;<br>
+&nbsp;&nbsp;&nbsp; inc(PC)<br>
+end;</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">remark that the the address MUST
+be in the zero page! The sum of peek(PC) and X could be greater than
+255. This is enforced by using byte as the returntype of the function
+instead of word.</font></p>
+<ol>
+  <ol>
+    <ol start="8">
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>zeropage, indexed by Y</b></font></p>
+      </li>
+    </ol>
+  </ol>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function zpy : byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; zpy := peek(PC)+Y;<br>
+&nbsp;&nbsp;&nbsp; inc(PC)<br>
+end;</font></p>
+<ol>
+  <ol>
+    <ol start="9">
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>indexed indirect</b></font></p>
+      </li>
+    </ol>
+  </ol>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function indx : word;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; indx :=
+peek2(byte(peek(PC)+X));<br>
+&nbsp;&nbsp;&nbsp; inc(PC)<br>
+end;</font></p>
+<p class="western" style="margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Remark the explicit byte
+conversion to stay in the zeropage.</font></p>
+<p class="western" style="margin-left: 1.25in; margin-bottom: 0in;"
+ lang="en-US">
+</p>
+<ol>
+  <ol>
+    <ol start="10">
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>indirect indexed</b></font></p>
+      </li>
+    </ol>
+  </ol>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function indy : word;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; indy := peek2(peek(PC)) +
+Y;<br>
+&nbsp;&nbsp;&nbsp; inc(PC)<br>
+end;</font></p>
+<p class="western" style="margin-left: 0.25in; margin-bottom: 0in;"
+ lang="fr-FR">
+<span lang="en-US"><font face="Comic Sans MS, cursive"><b> </b>The
+entries in the case become then:</font></span></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 1in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Courier New, monospace"> $A9 : lda(imm);<br>
+$A5 : lda(zp);<br>
+$B5 : lda(zpx);<br>
+$AD : lda(abs);<br>
+$BD : lda(absx);<br>
+$B9 : lda(absy);<br>
+$A1 : lda(indx);<br>
+$B1 : lda(indy);</font><br>
+<br>
+<font face="Courier New, monospace">$85 : sta(zp);<br>
+$95 : sta(zpx);<br>
+$8D : sta(abs);<br>
+$9D : sta(absx);<br>
+$99 : sta(absy);<br>
+$81 : sta(indx);<br>
+$91 : sta(indy);</font></p>
+<ol>
+  <ol start="3">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>State register</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The implementation of STA is ok,
+since it doesn’t change the state of the processor. LDA on the
+other hand alters the value of the accumulator, and this should be
+represented in the state register.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The state register (P) is a byte
+register containing different flags (state indicators) represented by
+individual bits. These are NV.BDIZC (bit 3 is not used). The
+reference guide explains the meaning of this flags. We should provide
+methods to read and write individual bits in P.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">If we define the following
+constants:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">const <br>
+&nbsp;&nbsp;&nbsp; C = $01; //0000 0001<br>
+&nbsp;&nbsp;&nbsp; Z = $02; //0000 0010<br>
+&nbsp;&nbsp;&nbsp; I = $04; //0000 0100<br>
+&nbsp;&nbsp;&nbsp; D = $08; //0000 1000<br>
+&nbsp;&nbsp;&nbsp; B = $10; //0001 0000<br>
+&nbsp;&nbsp;&nbsp; V = $40; //0100 0000<br>
+&nbsp;&nbsp;&nbsp; N = $80; //1000 0000</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">We can read an individual flag
+by:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function flagset (flag : byte) :
+boolean;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; flagset := boolean(P and
+flag)<br>
+end;</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">and set a flag by:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure setflag (flag : byte;
+status : boolean);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; if status &nbsp; then P :=
+P or flag<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; else P :=
+P and not flag<br>
+end;</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">remark: two procedures ‘setflag’
+and ‘clearflag’ would be more efficient, but would
+produce lesser clear code later on.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">LDA can now be altered to
+represent the correct state:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure lda (address : word);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; A := peek (address);<br>
+&nbsp;&nbsp;&nbsp; setflag(Z,A=0);<br>
+&nbsp;&nbsp;&nbsp; setflag(N,A&gt;=$80)<br>
+end;</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Remark: the reference guides
+state what flags are changed for each instruction. </font>
+</p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Some machine code instructions
+simple set or clear a flag. They can be implemented directly in the
+case, with setflag used as a generic procedure.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">e.g. SEC (SEt Carry) and CLC
+(Clear Carry) can be implemented by:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">$38 : setflag(C,true); //sec<br>
+$18 : setflag(C,false); //clc</font></p>
+<ol>
+  <ol start="4">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Simular instructions</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Most of the instructions are
+similar to LDA and STA. We will not treat them here in detail. Look
+in <a href="./ed64.pas.html">ed64.pas</a>. You will find the
+implementation quiet obvious.</font></p>
+<ol>
+  <ol start="5">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Stack operations</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">An other type of instructions are
+stack instructions. Some registers can be pushed on or pulled of the
+stack.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">We will implement two generics
+named push and pull.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The stack is physically placed in
+memory page 1. (from $100 to $1FF) and is referenced by the stack
+pointer (S). Since S is a byte register, it points to the stack by
+adding $100 to S.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure push (b : byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; poke ($100+S,b);<br>
+&nbsp;&nbsp;&nbsp; dec(S)<br>
+end;</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function pull : byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; inc(S);<br>
+&nbsp;&nbsp;&nbsp; pull := peek($100+S)<br>
+end;</font></p>
+<ol>
+  <ol start="6">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Jumping instructions</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Jumping instructions alter the
+flow of a machine code program. A jump to an address works by putting
+this address in the PC.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure jmp (address : word);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; PC := address;<br>
+end;</font></p>
+<ol>
+  <ol start="7">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Branching instructions</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Branching is a relative jump. The
+(single) databyte is considered as a two’s complement (a value
+that can be positive or negative). A positive value jumps forward, a
+negative value jumps backward.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">All branches are conditional
+(depending on a flag). So we will implement two generic procedures
+bfs (Branch on Flag Set) and bfc (Branch on Flag Clear):</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"><font face="Courier New, monospace">procedure bfs (flag :
+byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; if flagset(flag)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; then PC := PC +
+shortint(peek(PC)) + 1<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; else inc(PC)<br>
+end;</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+</p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.07in 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in; page-break-inside: avoid;"
+ lang="en-US"><font face="Courier New, monospace">procedure bfc (flag :
+byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; if flagset(flag)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; then inc(PC)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; else PC := PC +
+shortint(peek(PC)) + 1<br>
+end;</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">remark: the value is treated as a
+two’s complement by typecasting to shortint.</font></p>
+<ol>
+  <ol start="8">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Subroutines</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">JSR (Jump SubRoutine) and RTS
+(ReTurn from Subroutine) are a combination of jumping and stack
+operation:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure jsr (address : word);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; dec(PC);<br>
+&nbsp;&nbsp;&nbsp; push(hi(PC));<br>
+&nbsp;&nbsp;&nbsp; push(lo(PC));<br>
+&nbsp;&nbsp;&nbsp; PC := address<br>
+end;</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure rts;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; PC := pull;<br>
+&nbsp;&nbsp;&nbsp; PC := PC + pull*256 + 1<br>
+end;</font></p>
+<ol>
+  <ol start="9">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Decimal mode</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Decimal mode is not implemented.
+An error is generated if the D flag is set by SED. If the D flag
+should be set by any other method (e.g. PLP) this is not detected !</font></p>
+<ol>
+  <ol start="10">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Interrupts</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Interrupts are not implemented.
+All instructions regarding interrupts are implemented (but since
+there are no methods for generating them, they will not occur)</font></p>
+<ol>
+  <ol start="11">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Undocumented instructions</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">There are some instructions in
+the 6510 that are not documented. These are not implemented at the
+moment.</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+</p>
+<ol>
+  <ol start="12">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Start address</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The 6510 processor looks at
+address $FFFC to find where to start the execution of a program:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">PC := peek2($FFFC);</font></p>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US"> </p>
+<ol>
+  <ol start="13">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Conclusion</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Look at the listing to see the
+complete implementation of the 6510 instruction set.</font></p>
+<ol start="3">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Debugging</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">When executing the emulator at
+this point, nothing will seems to happen since the program works only
+on internal data. We will add some debug lines in order to follow
+what is happening.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">var trace : boolean;</font><br>
+…<br>
+<font face="Courier New, monospace">procedure dump1;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; write('PC=',hexstr(PC,4),'
+IR=',hexstr(IR,2));<br>
+end;<br>
+<br>
+procedure dump2;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; writeln('
+A=',hexstr(A,2),' X=',hexstr(X,2),<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; '
+Y=',hexstr(Y,2),' S=',hexstr(S,2),<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; '
+P=',binstr(P,8));<br>
+end;</font><br>
+…<br>
+<font face="Courier New, monospace">trace := true;</font><br>
+…<br>
+<font face="Courier New, monospace">while true do<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; IR := peek(PC);<br>
+&nbsp;&nbsp;&nbsp; if trace then dump1;<br>
+&nbsp;&nbsp;&nbsp; inc(PC);<br>
+&nbsp;&nbsp;&nbsp; case IR of</font><br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; …<br>
+<font face="Courier New, monospace">&nbsp;&nbsp;&nbsp; else<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; error ('unknown
+instruction ')<br>
+&nbsp;&nbsp;&nbsp; end;<br>
+&nbsp;&nbsp;&nbsp; if trace then dump2<br>
+end</font></p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">If trace is true PC and IR are
+displayed before, and the other registers after executing the machine
+code (so that we can see what the instruction has done with them).</font></p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive"> </font></p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">It will be clear that this trace
+will slow down the emulator. Even when trace is false a check will be
+done each loop. So the trace code should be removed in the definitive
+version.</font></p>
+<ol start="4">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Executing the program</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Executing the program will not
+have much sense since no machine code is present in the memory. </font>
+</p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">We will test it by adding a
+machine code program: The following program will count from 5 downto
+0. We will exit the program with an unknown instruction.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.5in; margin-bottom: 0in;"
+ lang="fr-FR"> <font face="Comic Sans MS, cursive">&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Assembler
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; Machine
+code</font><br>
+<br>
+<font face="Courier New, monospace"><span lang="en-US">&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; LDX
+#$05 &nbsp;&nbsp; A205</span><br>
+LOOP &nbsp;&nbsp; DEX &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; CA<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; BNE LOOP &nbsp;&nbsp; D0FD<br>
+<span lang="nl-BE"></span><span lang="en-US">&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; (EXIT) &nbsp;&nbsp;&nbsp;&nbsp; FF</span></font></p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">To store the program at address
+$C000 we should add the following lines in the emulator program:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">poke($C000,$A2); poke($C001,$05);<br>
+poke($C002,$CA);<br>
+poke($C003,$D0); poke($C004,$FD);<br>
+poke($C005,$FF);</font></p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">and to set the starting address:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">poke($FFFC,$00); poke($FFFD,$C0);</font></p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Of course this poke’s
+should be removed from the real program later on. They are just
+included for this demonstration.</font></p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The complete code can be found in
+<a href="./ed64.pas.html">ED64.pas</a></font></p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US">
+</p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US"></p>
+<p class="western" style="margin-left: 0.5in; margin-bottom: 0in;"
+ lang="en-US"><font face="Comic Sans MS, cursive">After compiling
+<a href="./memio.pas.html">memio.pas</a> and
+<a href="./ed64.pas.html">ED64.pas</a> we can execute the program. The
+execution of the machine
+code program can be monitored in our trace. Remark that X is
+decremented and that the zero flag is set in order to exit the loop.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-left: 0.5in; margin-bottom: 0in; page-break-inside: avoid;"
+ lang="en-US">
+<font face="Courier New, monospace">--------------------------------------<br>
+Welcome to EL DENDO's c64
+emulator<br>
+(c) 2006 ir. Marc Dendooven<br>
+--------------------------------------<br>
+PC=C000 IR=A2 A=00 X=05 Y=00 S=00
+P=00000000<br>
+PC=C002 IR=CA A=00 X=04 Y=00 S=00
+P=00000000<br>
+PC=C003 IR=D0 A=00 X=04 Y=00 S=00
+P=00000000<br>
+PC=C002 IR=CA A=00 X=03 Y=00 S=00
+P=00000000<br>
+PC=C003 IR=D0 A=00 X=03 Y=00 S=00
+P=00000000<br>
+PC=C002 IR=CA A=00 X=02 Y=00 S=00
+P=00000000<br>
+PC=C003 IR=D0 A=00 X=02 Y=00 S=00
+P=00000000<br>
+PC=C002 IR=CA A=00 X=01 Y=00 S=00
+P=00000000<br>
+PC=C003 IR=D0 A=00 X=01 Y=00 S=00
+P=00000000<br>
+PC=C002 IR=CA A=00 X=00 Y=00 S=00
+P=00000010<br>
+PC=C003 IR=D0 A=00 X=00 Y=00 S=00
+P=00000010<br>
+PC=C005 IR=FF<br>
+--------------------------------------<br>
+emulator error: unknown
+instruction<br>
+PC=C005 IR=FF<br>
+<br>
+Execution has been ended<br>
+push return to exit<br>
+--------------------------------------</font></p>
+<p class="western"
+ style="margin-left: 1.24in; text-indent: 0.23in; margin-bottom: 0in;"
+ lang="en-US">
+<br>
+</p>
+<ol start="5">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Conclusion</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The emulator is now capable of
+emulating machine code programs for the 6510 processor.</font></p>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">In the following chapters we will
+load the C64 kernel and basic ROM’s in the emulator, and
+emulate some minimal input an output hardware to obtain a real
+working C64 emulator. </font>
+</p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+</body>
+</html>
