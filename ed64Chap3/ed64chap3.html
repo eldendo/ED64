@@ -1,0 +1,359 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE"
+ content="text/html; charset=windows-1252">
+  <title></title>
+  <meta name="GENERATOR" content="OpenOffice.org 2.0  (Win32)">
+  <meta name="AUTHOR" content="dendooven.m">
+  <meta name="CREATED" content="20061025;13460000">
+  <meta name="CHANGEDBY" content="Marc Dendooven">
+  <meta name="CHANGED" content="20061208;11050200">
+  <style>
+	<!--
+		@page { size: 21cm 29.7cm; margin: 2.5cm }
+		P { margin-bottom: 0.21cm; direction: ltr; color: #000000; widows: 2; orphans: 2 }
+		P.western { font-family: "Times New Roman", serif; font-size: 12pt; so-language: fr-FR }
+		P.cjk { font-family: "Times New Roman", serif; font-size: 12pt }
+		P.ctl { font-family: "Times New Roman", serif; font-size: 12pt; so-language: ar-SA }
+		A:link { color: #0000ff }
+		A:visited { color: #800080 }
+	-->
+	</style>
+</head>
+<body dir="ltr" lang="fr-BE" link="#0000ff" text="#000000"
+ vlink="#800080">
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-bottom: 0cm;"
+ align="center" lang="en-US">
+<font face="Comic Sans MS, cursive"><b>ED64 - HOW TO WRITE A
+COMMODORE 64 EMULATOR<br>
+Copyright 2006 by ir. Marc Dendooven</b></font><br>
+<br>
+<font face="Comic Sans MS, cursive"><b>Chapter 3 : Adding C64 ROM’s
+</b></font></p>
+<p class="western" style="margin-bottom: 0cm;" lang="en-US"></p>
+<ol>
+  <li>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">In Chapter 1 we created a simple
+emulator model an implemented it. In Chapter 2 we added the
+instruction set of the processor and created a working emulator of a
+6510 microprocessor.</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Now we will add the kernal rom
+and the basic rom which contain the operating sytem and the basic
+interpreter.</font></p>
+<ol start="2">
+  <li>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Obtaining the rom images.</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">We can get the rom images from a
+real C64, or we can look for them on the internet. </font>
+</p>
+<ol start="3">
+  <li>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Loading the rom images</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">We could load the rom images in
+our emulated ram memory. This works perfectly, but we risk that they
+will be overwritten. So we will change the memio unit to emulate rom.
+</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Courier New, monospace">var<br>
+&nbsp;&nbsp;&nbsp; basic_rom&nbsp; : array
+[$A000..$BFFF] of byte;<br>
+&nbsp;&nbsp;&nbsp; kernal_rom : array
+[$E000..$FFFF] of byte;</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US"> </p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">These arrays should be filled
+with the rom data from two files called BASIC.ROM and KERNAL.ROM. The
+following program does this:</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+</p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US"></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US"></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US"></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US"></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US"></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.25cm; margin-bottom: 0cm; page-break-inside: avoid;"
+ lang="en-US"><font face="Courier New, monospace">procedure loadrom
+(var rom:array
+of byte;filename:string);<br>
+var<br>
+&nbsp;&nbsp;&nbsp; f : file of byte;<br>
+&nbsp;&nbsp;&nbsp; b : byte;<br>
+&nbsp;&nbsp;&nbsp; address: word;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; {$i-}<br>
+&nbsp;&nbsp;&nbsp; assign (f,filename);<br>
+&nbsp;&nbsp;&nbsp; reset(f);<br>
+&nbsp;&nbsp;&nbsp; {$i+}<br>
+&nbsp;&nbsp;&nbsp; if ioresult &lt;&gt; 0
+then<br>
+&nbsp;&nbsp;&nbsp; begin<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; writeln('file
+',filename,' is missing');<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; readln;<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; halt<br>
+&nbsp;&nbsp;&nbsp; end;<br>
+&nbsp;&nbsp;&nbsp; address := low(rom);<br>
+&nbsp;&nbsp;&nbsp; while not eof(f) do<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; begin<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; read(f,b);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; rom[address] :=
+b;<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; inc(address)<br>
+&nbsp;&nbsp;&nbsp; end;<br>
+&nbsp;&nbsp;&nbsp; close(f)<br>
+end;</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">and this procedure can be called
+from the initialization part of the unit.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Courier New, monospace">initialization<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; loadrom(kernal_rom,'kernal.rom');<br>
+&nbsp;&nbsp;&nbsp; loadrom(basic_rom,'basic.rom')<br>
+end;</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">In startup mode (like the c64 is
+started up), reading the positions $A000 to $BFFF and $E000 to $FFFF
+will access the rom. We can implement this by changing the
+implementation of the peek function:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Courier New, monospace">function peek(address : word) :
+byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $A000..$BFFF :
+peek :=
+basic_rom[address];<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $D000..$DFFF :
+peek :=
+io(address);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $E000..$FFFF :
+peek :=
+kernal_rom[address]<br>
+&nbsp;&nbsp;&nbsp; else<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; peek :=
+ram[address]<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Since writing to this regions
+should alter underlaying ram and not the rom, the poke procedure
+should not be changed.</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">In startup mode an access to the
+region $D000 to $DFFF should access memory mapped hardware, so we
+will dispatch to a function called io. This function will return $FF
+(If an IO device is not present on a real c64, the physical lines
+should read a high value). If we don’t return $FF for not
+implemented hardware, we risk that the c64 OS interpretes this as a
+malfunction and hangs. </font>
+</p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Courier New, monospace">function io(address : word) :
+byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; io := $FF;<br>
+end;</font></p>
+<ol start="4">
+  <li>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Running the emulator</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">When we compile memio.pas and
+ed64.pas we can run the program. Be sure that the rom files are
+present in the same directory. The emulator starts executing the OS.
+If trace is on you can follow the execution. You can use cntl-c to
+stop.</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Remark: it is easier to study the
+trace if you execute the command ed64.exe &gt; out.txt in a command
+line shell. Use cntl-c (as fast as possible – otherwise out.txt
+will be too big) to stop execution. Now you can examine out.txt in an
+editor (don’t use notepad for big files).</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US"> </p>
+<ol start="5">
+  <li>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Examining the trace</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">If you have a documented ROM
+listing (like the book ‘What’s really inside the
+Commodore 64’ – Milton Bathurst) you can follow the
+trace. At first some initialization routines are executed. If you
+examine the trace you will see that the emulator enters and stays a
+long time in a loop. This is the memory checking routine done at
+startup. This routine ends at address $FD9A. You may wonder that, if
+this startup routine is that slow, our emulator will be unusable. </font>
+</p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">We will alter the trace routine
+now to start tracing from a specific address: </font>
+</p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">in ED64.pas we change:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US"> <font face="Courier New, monospace">trace := false; </font>
+</p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">and add a line in the main
+processor loop:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US"> …<br>
+<font face="Courier New, monospace">while true do<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; IR := peek(PC);</font><br>
+<span lang="en-US"><font face="Courier New, monospace"><b><i>&nbsp;&nbsp;&nbsp;
+if
+PC=$fd9a then trace := true;</i></b></font></span><br>
+<font face="Courier New, monospace">&nbsp;&nbsp;&nbsp; if trace then
+dump1;<br>
+&nbsp;&nbsp;&nbsp; inc(PC);<br>
+&nbsp;&nbsp;&nbsp; case IR of<br>
+&nbsp;&nbsp;&nbsp; …</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Now tracing starts only at the
+indicated point (after the memory check).</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">remark: this is only for
+demonstrating purposes: this line (and the other trace lines) should
+be deleted in our final version.</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">When we execute the emulator now
+we can remark that tracing almost starts immediately (at least on a
+recent computer) after executing the complete memory check. So it is
+not the emulator which is slow, it is the tracing routine (in fact
+the screen access) that is that slow.</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Now the emulator starts an
+endless loop at $FF5E. At this position the emulator attempts to reed
+a value from the video chip (the raster count at memory mapped
+position $D012) and waits for this value to become zero (for video
+synchronization). Since we have no hardware emulated the value is and
+stays $FF. Here is an excerpt of the trace:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+…<br>
+<font face="Courier New, monospace">PC=FF5E IR=AD A=FF X=01 Y=84 S=FD
+P=11000101<br>
+PC=FF61 IR=D0 A=FF X=01 Y=84 S=FD
+P=11000101<br>
+PC=FF5E IR=AD A=FF X=01 Y=84 S=FD
+P=11000101<br>
+PC=FF61 IR=D0 A=FF X=01 Y=84 S=FD
+P=11000101<br>
+PC=FF5E IR=AD A=FF X=01 Y=84 S=FD
+P=11000101<br>
+PC=FF61 IR=D0 A=FF X=01 Y=84 S=FD
+P=11000101<br>
+PC=FF5E IR=AD A=FF X=01 Y=84 S=FD
+P=11000101</font><br>
+…</p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+</p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US"></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US"><font face="Comic Sans MS, cursive">So we will have to
+program a stub
+for this video register. We change the io function to return $00 for
+the address $D012.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Courier New, monospace">function io(address : word) :
+byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $D012 : io := $00<br>
+&nbsp;&nbsp;&nbsp; else<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; io := $FF<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Now the emulator passes this
+point and enters again an endless loop at $E5CD. But this is what we
+expected. The emulator simply waits for someone or something to poke
+a character in the keyboard buffer.</font></p>
+<ol start="6">
+  <li>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Conclusion</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">In this chapter we added the c64
+roms and executed the OS inside it.</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">In the next chapter we will
+provide a minimal screen and keyboard emulation to provide a working
+c64 emulator.<br>
+</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US"><font face="Comic Sans MS, cursive">the code: <a
+ href="./memio.pas.html">memio.pas</a>, <a href="./ed64.pas.html">ed64.pas</a><br>
+</font></p>
+</body>
+</html>
