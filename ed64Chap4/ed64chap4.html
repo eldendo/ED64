@@ -1,0 +1,524 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE"
+ content="text/html; charset=windows-1252">
+  <title></title>
+  <meta name="GENERATOR" content="OpenOffice.org 2.0  (Win32)">
+  <meta name="AUTHOR" content="dendooven.m">
+  <meta name="CREATED" content="20061025;13460000">
+  <meta name="CHANGEDBY" content="Marc Dendooven">
+  <meta name="CHANGED" content="20061208;11074800">
+  <style>
+	<!--
+		@page { size: 21cm 29.7cm; margin: 2.5cm }
+		P { margin-bottom: 0.21cm; direction: ltr; color: #000000; widows: 2; orphans: 2 }
+		P.western { font-family: "Times New Roman", serif; font-size: 12pt; so-language: fr-FR }
+		P.cjk { font-family: "Times New Roman", serif; font-size: 12pt }
+		P.ctl { font-family: "Times New Roman", serif; font-size: 12pt; so-language: ar-SA }
+		A:link { color: #0000ff }
+		A:visited { color: #800080 }
+	-->
+	</style>
+</head>
+<body dir="ltr" lang="fr-BE" link="#0000ff" text="#000000"
+ vlink="#800080">
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-bottom: 0cm;"
+ align="center" lang="en-US">
+<font face="Comic Sans MS, cursive"><b>ED64 - HOW TO WRITE A
+COMMODORE 64 EMULATOR<br>
+Copyright 2006 by ir. Marc Dendooven</b></font><br>
+<br>
+<font face="Comic Sans MS, cursive"><b>Chapter 4 : Adding Input and
+Output </b></font>
+</p>
+<p class="western" style="margin-bottom: 0cm;" lang="en-US"></p>
+<ol>
+  <li>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">In Chapter 1 we created a simple
+emulator model an implemented it. In Chapter 2 we added the
+instruction set of the processor and created a working emulator of a
+6510 microprocessor.</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">In Chapter 3 we added the kernal
+rom and the basic rom which contain the operating sytem and the basic
+interpreter.</font></p>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Now we will add minimal input and
+output. At the end of this chapter, we will obtain a working
+(minimal) emulator.</font></p>
+<ol start="2">
+  <li>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Text output.</b></font></p>
+    <ol>
+      <li>
+        <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction.</b></font></p>
+      </li>
+    </ol>
+  </li>
+</ol>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The commodore 64 had, for his
+time, very good graphics. High resolution, color, sprites, etc…
+For the moment we will only emulate text output the way the c64 works
+when switched on.</font></p>
+<ol>
+  <ol start="2">
+    <li>
+      <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Switching of the trace</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Since we will send text to the
+screen we should turn of the trace. Otherwise both textstreams will
+garble up with each other. You can change all the trace code in
+comments in the code to speed up the emulator.</font></p>
+<ol>
+  <ol start="3">
+    <li>
+      <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Emulation model</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Graphics on the c64 is handled by
+the VIC chip. The VIC works autonomous from the rest of the system to
+generate a video signal. To now what to display, the VIC shares the
+memory with the processor and can look into the memory. This is hard
+to emulate. Here we will emulate the user model: when a poke occurred
+between address 1024 and 2023 decimal ($400 and $7E7), a character is
+displayed on the screen. </font>
+</p>
+<ol>
+  <ol start="4">
+    <li>
+      <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Implementation</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">This can be done by implementing
+the poke events the same way we did with the peeks. Assuming we have
+a procedure ‘vicText’ witch displays a char at a screen
+position:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure poke(address : word ;
+value : byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; ram[address] := value;<br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $400..$7E7 :
+vicText(address-$400,value)<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">remark that the poke is not
+replaced by this action (like in the peek), but is added to it.</font></p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">In FreePascal we will use the CRT
+library unit to use textio. This library has a procedure gotoXY to
+position text on the screen.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure vicText(pos: word; val:
+byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; gotoXY((pos mod 40)+1,(pos
+div 40)+1);<br>
+&nbsp;&nbsp;&nbsp; write(charset[val])<br>
+end;</font></p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">since the c64 doesn’t use
+ascii for it’s text, we will use a conversion table (simply an
+array with the c64 characters). Since not all the c64 characters
+exist in a standard font, we will use a reduced set.</font></p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">To use inversed characters, we
+can extend vicText to:</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure vicText(pos: word; val:
+byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; gotoXY((pos mod 40)+1,(pos
+div 40)+1);<br>
+&nbsp;&nbsp;&nbsp; if val &lt; $80 &nbsp;&nbsp; then begin<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; textAttr:=$9B;<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; write(charset[val])<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; end<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; else begin<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; textAttr:=$B9;<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; write(charset[val-$80])<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">the value of textAttr contains
+the for- and background color to be used. The values used are
+lightblue and lightcyan, an aproximation of the startcolours of the C64.</font></p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">See <a href="./vic.pas.html">vic.pas</a>
+for the complete
+implementation.</font></p>
+<ol>
+  <ol start="5">
+    <li>
+      <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Conclusion</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">When we execute the program, we
+see the starting screen of a C64. If you want you can change the
+parameters (font, number of lines or colums) of your console to add
+more look and feel of a real c64)</font></p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<img src="ed64Chap4_html_a528f21.png" name="graphics1" align="bottom"
+ border="0" height="238" width="332"></p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Example 40x25, 8x8 fonts on
+windows XP. Also the 16 x 12 font gives a good look. </font>
+</p>
+<ol start="3">
+  <li>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Keyboard input.</b></font></p>
+    <ol>
+      <li>
+        <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+      </li>
+    </ol>
+  </li>
+</ol>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Keyboard input happens the
+following way: 50 times in a second an interrupt is generated. The
+standard IRQ routine scans the keyboard through one of the CIA's
+(Complex interface Adaptor), and, if a key is pressed, puts the
+character in the keyboard buffer. None of this items have been
+emulated. But we could take a shortcut. What if we write a small
+program that reads the keyboard, and if a key is pressed, puts that
+key straight in the keyboard buffer ? </font>
+</p>
+<ol>
+  <ol start="2">
+    <li>
+      <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Writing in the keyboard buffer</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The keyboard buffer can be found
+at location $0277, and is 10 bytes long. The nr of items in the
+buffer is stored at location $C6. With the CRT unit the keyboard can
+be read. The following procedure adds a key to the keyboardbuffer.</font></p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+</p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US"></p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US"></p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US"></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure addkey;<br>
+var buff,ch : byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; buff := peek($C6);<br>
+&nbsp;&nbsp;&nbsp; if buff &lt; 10 then<br>
+&nbsp;&nbsp;&nbsp; begin<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ch :=
+ord(upcase(readkey));<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; poke($0277+buff,ch);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; poke($C6,buff+1)<br>
+&nbsp;&nbsp;&nbsp; end</font><br>
+<font face="Courier New, monospace">end;</font></p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">And we can call this procedure
+from the main loop when a key is pressed :</font></p>
+<p class="western" style="margin-bottom: 0cm;" lang="en-US"> </p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Courier New, monospace">if keypressed then addkey</font></p>
+<ol>
+  <ol start="3">
+    <li>
+      <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>A working emulator !</b></font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">At last we have a usable
+emulator! Type in some basic programs to test them out !</font></p>
+<ol>
+  <ol start="4">
+    <li>
+      <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Optimisations</b></font></p>
+      <ol>
+        <li>
+          <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Emulator speed</b></font></p>
+        </li>
+      </ol>
+    </li>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 2.5cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">You will have remarked at the
+startupsequence that the emulator has slowed down a lot. Indeed we
+test the keyboard every emulator turn. That is not necessary. We will
+add a counter. The counter is decremented each loop en only when
+reached zero the keyboard is tested.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 2.5cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Courier New, monospace">var count: word;</font><br>
+...<br>
+<font face="Courier New, monospace">dec(count);<br>
+if count=0 then<br>
+&nbsp;&nbsp;&nbsp; if keypressed then addkey<br>
+</font>...<br>
+</p>
+<p class="western" style="margin-left: 2.5cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Now the emulator is much faster.</font></p>
+<p class="western" style="margin-left: 2.5cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">since count is a word, the
+keyboard is checked only every 2^16 = 65536 loops. This gives an idea
+of the emulator speed. If on your computer this is too slow, you can
+take a lesser value by resetting the counter to a preset value when
+the counter reaches zero. </font>
+</p>
+<p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
+ lang="en-US">
+</p>
+<ol>
+  <ol>
+    <ol start="2">
+      <li>
+        <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>The cursor</b></font></p>
+      </li>
+    </ol>
+  </ol>
+</ol>
+<p class="western" style="margin-left: 2.5cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">You might have noticed that the
+cursor is not on the right place. This is because the cursor is not
+the c64 cursor, but the cursor of the console. Since the c64 cursor
+is treated by the interrupt routine, it is not updated here. We will
+set it on the correct place each time count reaches zero. (addresses
+211 en 214 holds the cursor position) </font>
+</p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 2.5cm; margin-bottom: 0cm;"
+ lang="en-US"> <font face="Courier New, monospace">if count=0 then<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; if keypressed
+then addkey;<br>
+&nbsp;&nbsp;&nbsp; gotoXY(peek(211)+1,peek(214)+1)<br>
+end</font></p>
+<p class="western" style="margin-left: 2.5cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">By specifying </font>
+</p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 2.5cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Courier New, monospace">cursorBig;</font></p>
+<p class="western" style="margin-left: 2.5cm; margin-bottom: 0cm;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">We add to the c64 look and feel.</font></p>
+<ol start="4">
+  <ol start="5" style="list-style-type: decimal;">
+    <li>
+      <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Conclusions</b></font></p>
+      <p class="western" style="margin-bottom: 0cm;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">We added keyboard access in a few lines,
+but we did something very ugly: our program emulated not only hardware,
+but also software (the standard IRQ routine). If a c64 program tries to
+replace this routine, this won't work ! Using the cursor of the CRT
+unit is also bad: if we should use another implementation of the VIC
+(in High Resolution e.g.), we will have no cursor. At last the c64
+timer (the variables TIME and TIME$) will not work, since they are also
+updated by the interrupt routine. </font> </p>
+      <p class="western" style="margin-bottom: 0cm;" lang="en-US"> </p>
+    </li>
+  </ol>
+  <li>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Loading and saving programs.</b></font></p>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">Now we can enter programs in ED64. But
+that is not very usefull if we can not save and reload them. We added
+some routines to save and load programs (with .prg extention)
+immediately to memory. The first two bytes in a .prg file are the
+address where the program should be loaded. If the boolean 'basic'
+equals true this is bytes are ignored and the program is loaded in the
+basis area.</font></p>
+  </li>
+</ol>
+<p class="western" style="margin-bottom: 0cm;" lang="en-US">
+</p>
+<p class="western" style="margin-bottom: 0cm;" lang="en-US"></p>
+<p class="western" style="margin-bottom: 0cm;" lang="en-US"></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.05cm; margin-bottom: 0cm; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure load_prg (filename :
+string ; basic : boolean);<br>
+var f : file of byte;<br>
+&nbsp;&nbsp;&nbsp; b : byte;<br>
+&nbsp;&nbsp;&nbsp; address : word;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; {$i-}<br>
+&nbsp;&nbsp;&nbsp; assign (f,filename);<br>
+&nbsp;&nbsp;&nbsp; reset(f);<br>
+&nbsp;&nbsp;&nbsp; {$i+}<br>
+&nbsp;&nbsp;&nbsp; if ioresult &lt;&gt; 0<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; then<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; writeln('No
+file
+named ',filename)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; else<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; begin<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; read(f,b);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; address := b;<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; read(f,b);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; address :=
+address + b*256;<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; if basic then
+address := 2048;<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; while not eof(f)
+do<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; begin<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; read(f,b);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; poke(address,b);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; inc(address)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; end;<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; close(f);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; poke
+($2D,lo(address));<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; poke
+($2E,hi(address));<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; PC := $A52A<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; end;<br>
+end;</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.05cm; margin-bottom: 0cm; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure save_prg (filename :
+string ; from_address,to_address : word);<br>
+var f : file of byte;<br>
+&nbsp;&nbsp;&nbsp; i : word;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; assign (f,filename);<br>
+&nbsp;&nbsp;&nbsp; rewrite(f);<br>
+&nbsp;&nbsp;&nbsp; write(f,lo(from_address));<br>
+&nbsp;&nbsp;&nbsp; write(f,hi(from_address));<br>
+&nbsp;&nbsp;&nbsp; for i := from_address to
+to_address do write(f,peek(i));<br>
+&nbsp;&nbsp;&nbsp; close(f)<br>
+end;</font></p>
+<p class="western" style="margin-bottom: 0cm; widows: 2; orphans: 2;"
+ lang="fr-FR"> </p>
+<div style="margin-left: 40px;"><font face="Comic Sans MS, cursive">These
+programs are called from a extended version of the addkey procedure
+(see ed64.pas) : the procedure checks for special keys and translates
+them: so we can use the cursor keys and the insert key. F11 activates
+the load routine, shift-F11 loads to a specific address (equivalent to
+LOAD “file”,x,1) and F12 activates the save routine. </font></div>
+<p class="western" style="margin-bottom: 0cm; widows: 2; orphans: 2;"
+ lang="fr-FR"> </p>
+<ol start="5">
+  <li>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Conclusions</b></font></p>
+    <p class="western" style="margin-bottom: 0cm;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">In this chapter we made a working C64
+emulator. A program '<a href="./sin.prg">sin.prg</a>' is added. Try it
+out or write some of
+your own programs.<br>
+code: <a href="./ed64.pas.html">ed64.pas</a>, <a
+ href="./memio.pas.html">memio.pas</a>, <a href="./vic.pas.html">vic.pas</a></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
+ lang="en-US">
+</p>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<HTML>
+<HEAD>
+<TITLE>vic.pas</TITLE>
+<STYLE TYPE="text/css"><!--
+.syntax0 {
+color: #000000;
+}
+.syntax1 {
+color: #cc0000;
+}
+.syntax2 {
+color: #ff8400;
+}
+.syntax3 {
+color: #6600cc;
+}
+.syntax4 {
+color: #cc6600;
+}
+.syntax5 {
+color: #ff0000;
+}
+.syntax6 {
+color: #9966ff;
+}
+.syntax7 {
+background: #ffffcc;
+color: #ff0066;
+}
+.syntax8 {
+color: #006699;
+font-weight: bold;
+}
+.syntax9 {
+color: #009966;
+font-weight: bold;
+}
+.syntax10 {
+color: #0099ff;
+font-weight: bold;
+}
+.syntax11 {
+color: #66ccff;
+font-weight: bold;
+}
+.syntax12 {
+color: #02b902;
+}
+.syntax13 {
+color: #ff00cc;
+}
+.syntax14 {
+color: #cc00cc;
+}
+.syntax15 {
+color: #9900cc;
+}
+.syntax16 {
+color: #6600cc;
+}
+.syntax17 {
+color: #0000ff;
+}
+.syntax18 {
+color: #000000;
+font-weight: bold;
+}
+.gutter {
+background: #dbdbdb;
+color: #000000;
+}
+.gutterH {
+background: #dbdbdb;
+color: #990066;
+}
+-->
+</STYLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF">
+<PRE><SPAN CLASS="gutter">   1:</SPAN><SPAN CLASS="syntax1">(*</SPAN><SPAN CLASS="syntax1">****************************************************************</SPAN>
+<SPAN CLASS="gutter">   2:</SPAN><SPAN CLASS="syntax1">*</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">VIC</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">emulation</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">unit</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">*</SPAN>
+<SPAN CLASS="gutter">   3:</SPAN><SPAN CLASS="syntax1">*</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">This</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">file</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">is</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">part</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">of</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">ED64</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">*</SPAN>
+<SPAN CLASS="gutter">   4:</SPAN><SPAN CLASS="syntax1">*</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">Copyright</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">2007</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">by</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">ir.</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">Marc</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">Dendooven</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">*</SPAN>
+<SPAN CLASS="gutterH">   5:</SPAN><SPAN CLASS="syntax1">*</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">Version:</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">Chapter</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">6</SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1"> </SPAN><SPAN CLASS="syntax1">*</SPAN>
+<SPAN CLASS="gutter">   6:</SPAN><SPAN CLASS="syntax1">****************************************************************</SPAN><SPAN CLASS="syntax1">*)</SPAN>
+<SPAN CLASS="gutter">   7:</SPAN><SPAN CLASS="syntax8">Unit</SPAN> vic<SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">   8:</SPAN>
+<SPAN CLASS="gutter">   9:</SPAN><SPAN CLASS="syntax1">(*</SPAN><SPAN CLASS="syntax1">**************************************************************</SPAN><SPAN CLASS="syntax1">*)</SPAN>
+<SPAN CLASS="gutterH">  10:</SPAN><SPAN CLASS="syntax8">interface</SPAN>
+<SPAN CLASS="gutter">  11:</SPAN>
+<SPAN CLASS="gutter">  12:</SPAN><SPAN CLASS="syntax8">procedure</SPAN> vicText<SPAN CLASS="syntax18">(</SPAN>pos<SPAN CLASS="syntax18">:</SPAN> <SPAN CLASS="syntax10">word</SPAN><SPAN CLASS="syntax18">;</SPAN> val<SPAN CLASS="syntax18">:</SPAN> <SPAN CLASS="syntax10">byte</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  13:</SPAN><SPAN CLASS="syntax1">(*</SPAN><SPAN CLASS="syntax1">**************************************************************</SPAN><SPAN CLASS="syntax1">*)</SPAN>
+<SPAN CLASS="gutter">  14:</SPAN>
+<SPAN CLASS="gutterH">  15:</SPAN><SPAN CLASS="syntax8">implementation</SPAN>
+<SPAN CLASS="gutter">  16:</SPAN>
+<SPAN CLASS="gutter">  17:</SPAN><SPAN CLASS="syntax8">uses</SPAN> memio<SPAN CLASS="syntax18">,</SPAN>SystemAbstraction<SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  18:</SPAN>
+<SPAN CLASS="gutter">  19:</SPAN>
+<SPAN CLASS="gutterH">  20:</SPAN>
+<SPAN CLASS="gutter">  21:</SPAN><SPAN CLASS="syntax8">procedure</SPAN> vicText<SPAN CLASS="syntax18">(</SPAN>pos<SPAN CLASS="syntax18">:</SPAN> <SPAN CLASS="syntax10">word</SPAN><SPAN CLASS="syntax18">;</SPAN> val<SPAN CLASS="syntax18">:</SPAN> <SPAN CLASS="syntax10">byte</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  22:</SPAN><SPAN CLASS="syntax8">var</SPAN> x0<SPAN CLASS="syntax18">,</SPAN>y0<SPAN CLASS="syntax18">,</SPAN>x<SPAN CLASS="syntax18">,</SPAN>y<SPAN CLASS="syntax18">:</SPAN><SPAN CLASS="syntax10">integer</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  23:</SPAN><SPAN CLASS="syntax8">begin</SPAN>
+<SPAN CLASS="gutter">  24:</SPAN>       x0<SPAN CLASS="syntax18">:=</SPAN><SPAN CLASS="syntax18">(</SPAN>pos <SPAN CLASS="syntax8">mod</SPAN> <SPAN CLASS="syntax5">40</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">*</SPAN><SPAN CLASS="syntax5">8</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutterH">  25:</SPAN>       y0<SPAN CLASS="syntax18">:=</SPAN><SPAN CLASS="syntax18">(</SPAN>pos <SPAN CLASS="syntax8">div</SPAN> <SPAN CLASS="syntax5">40</SPAN><SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">*</SPAN><SPAN CLASS="syntax5">8</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  26:</SPAN>       <SPAN CLASS="syntax8">for</SPAN> x<SPAN CLASS="syntax18">:=</SPAN><SPAN CLASS="syntax5">0</SPAN> <SPAN CLASS="syntax8">to</SPAN> <SPAN CLASS="syntax5">7</SPAN> <SPAN CLASS="syntax8">do</SPAN>
+<SPAN CLASS="gutter">  27:</SPAN>          <SPAN CLASS="syntax8">for</SPAN> y <SPAN CLASS="syntax18">:=</SPAN> <SPAN CLASS="syntax5">0</SPAN> <SPAN CLASS="syntax8">to</SPAN> <SPAN CLASS="syntax5">7</SPAN> <SPAN CLASS="syntax8">do</SPAN>
+<SPAN CLASS="gutter">  28:</SPAN>             <SPAN CLASS="syntax8">if</SPAN> <SPAN CLASS="syntax10">boolean</SPAN><SPAN CLASS="syntax18">(</SPAN>vicPeek<SPAN CLASS="syntax18">(</SPAN>$<SPAN CLASS="syntax5">1000</SPAN><SPAN CLASS="syntax18">+</SPAN>val<SPAN CLASS="syntax18">*</SPAN><SPAN CLASS="syntax5">8</SPAN><SPAN CLASS="syntax18">+</SPAN>y<SPAN CLASS="syntax18">)</SPAN> <SPAN CLASS="syntax8">and</SPAN> <SPAN CLASS="syntax18">(</SPAN>$<SPAN CLASS="syntax5">80</SPAN> <SPAN CLASS="syntax8">shr</SPAN> x<SPAN CLASS="syntax18">)</SPAN><SPAN CLASS="syntax18">)</SPAN>
+<SPAN CLASS="gutter">  29:</SPAN>                   <SPAN CLASS="syntax8">then</SPAN> setPixel<SPAN CLASS="syntax18">(</SPAN>x0<SPAN CLASS="syntax18">+</SPAN>x<SPAN CLASS="syntax18">,</SPAN>y0<SPAN CLASS="syntax18">+</SPAN>y<SPAN CLASS="syntax18">,</SPAN><SPAN CLASS="syntax5">14</SPAN><SPAN CLASS="syntax18">)</SPAN> <SPAN CLASS="syntax2">//</SPAN><SPAN CLASS="syntax2">lightblue</SPAN>
+<SPAN CLASS="gutterH">  30:</SPAN>                   <SPAN CLASS="syntax8">else</SPAN> setPixel<SPAN CLASS="syntax18">(</SPAN>x0<SPAN CLASS="syntax18">+</SPAN>x<SPAN CLASS="syntax18">,</SPAN>y0<SPAN CLASS="syntax18">+</SPAN>y<SPAN CLASS="syntax18">,</SPAN><SPAN CLASS="syntax5">6</SPAN><SPAN CLASS="syntax18">)</SPAN>  <SPAN CLASS="syntax2">//</SPAN><SPAN CLASS="syntax2">blue</SPAN>
+<SPAN CLASS="gutter">  31:</SPAN>
+<SPAN CLASS="gutter">  32:</SPAN><SPAN CLASS="syntax8">end</SPAN><SPAN CLASS="syntax18">;</SPAN>
+<SPAN CLASS="gutter">  33:</SPAN>
+<SPAN CLASS="gutter">  34:</SPAN>
+<SPAN CLASS="gutterH">  35:</SPAN>
+<SPAN CLASS="gutter">  36:</SPAN><SPAN CLASS="syntax8">end</SPAN><SPAN CLASS="syntax18">.</SPAN>
+</PRE></BODY>
+</HTML>
+

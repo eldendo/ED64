@@ -1,0 +1,332 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE"
+ content="text/html; charset=windows-1252">
+  <title></title>
+  <meta name="GENERATOR" content="OpenOffice.org 2.0  (Win32)">
+  <meta name="AUTHOR" content="dendooven.m">
+  <meta name="CREATED" content="20061025;13460000">
+  <meta name="CHANGEDBY" content="Marc Dendooven">
+  <meta name="CHANGED" content="20070202;19213700">
+  <style>
+	<!--
+		@page { size: 8.27in 11.69in; margin: 0.98in }
+		P { margin-bottom: 0.08in; direction: ltr; color: #000000; widows: 2; orphans: 2 }
+		P.western { font-family: "Times New Roman", serif; font-size: 12pt; so-language: fr-FR }
+		P.cjk { font-family: "Times New Roman", serif; font-size: 12pt }
+		P.ctl { font-family: "Times New Roman", serif; font-size: 12pt; so-language: ar-SA }
+		A:link { color: #0000ff }
+		A:visited { color: #800080 }
+	-->
+	</style>
+</head>
+<body dir="ltr" lang="fr-BE" link="#0000ff" text="#000000"
+ vlink="#800080">
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-bottom: 0in;"
+ align="center" lang="en-US">
+<font face="Comic Sans MS, cursive"><b>ED64 - HOW TO WRITE A
+COMMODORE 64 EMULATOR<br>
+Copyright 2007 by ir. Marc Dendooven</b></font><br>
+<br>
+<font face="Comic Sans MS, cursive"><b>Chapter 6 : Using a graphic
+interface. </b></font>
+</p>
+<ol>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">In the previous chapters we created a
+working c64 emulator. It used the console for its output. Only a
+limited number of characters can be displayed. In this chapter we will
+use a graphic interface. The characters will be generated pixel by
+pixel using the c64 character rom.</font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
+  </li>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Choosing a graphic library.</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">There are a lot of usable graphic
+libraries. Most of them are OS specific. To make abstraction of these
+libraries we will create an abstract unit that will call the real
+library for us. When someone chooses to use another graphic library,
+only the implementation of the abstract unit should be changed.
+Freepascal comes with the Graph unit. When developing under windows, a
+library called WinGraph is recommended. It can be found on the internet.</font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
+  </li>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Accessing the character rom.</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">In the memio unit, the character rom
+should be emulated: the char rom can be fond in the file char.rom</font></p>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.49in; margin-right: 0.67in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">var char_rom : array
+[$D000..$DFFF] of byte;</font><br>
+<font face="Courier New, monospace">...</font><br>
+<font face="Courier New, monospace">initialization<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; ...<br>
+&nbsp;&nbsp;&nbsp; loadrom(char_rom,'char.rom')<br>
+end;</font></p>
+<ol start="3">
+  <p class="western" style="margin-bottom: 0in; widows: 2; orphans: 2;"
+ lang="en-US"> <font face="Comic Sans MS, cursive"><font size="3">in
+standard startup mode, the char rom is not visible for the processor,
+so we shouldn't update the peek instruction (at this moment).<br>
+  <br>
+But the vic chip emulation should be able to access the char rom. The
+vic 'sees' memory in a different way as the processor: The vic sees the
+ram memory, and two images of the character rom at $1000 and $9000. We
+can implement this with a alternative peek function (vicPeek). </font></font>
+  </p>
+</ol>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+</p>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US"></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.49in; margin-right: 0.54in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">Interface<br>
+...<br>
+function vicPeek(address : word)
+: byte;<br>
+<br>
+Implementation<br>
+...<br>
+function vicPeek(address : word)
+: byte;<br>
+<font size="3">begin</font><br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $1000..$1FFF : vicPeek :=
+char_rom[address+$C000];<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $9000..$9FFF : vicPeek :=
+char_rom[address+$4000]<br>
+&nbsp;&nbsp;&nbsp; else<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; vicPeek :=
+ram[address]<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<ol start="4">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>The package 'SystemAbstraction'</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">This package makes abstraction of the
+graphics library. The first thing we need is to open a graphic window
+or screen. After the emulator has finished, the window/screen should be
+closed. We should also be able to set pixels in the window to a certain
+color. At last, most graphic windows contain a close button. We should
+be able to check if this button has been pressed. This gives the
+following interface:</font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.98in; margin-right: 0.52in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">interface<br>
+<br>
+type nibble = 0..15;<br>
+<br>
+procedure openScreen;<br>
+procedure closeScreen;<br>
+procedure setPixel(x,y : word;
+color: nibble);<br>
+function closeScreenRequest :
+Boolean; </font>
+</p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+<ol start="5">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Implementation</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">Using the WinGraph package, the
+implementation could be:</font></p>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.98in; margin-right: 0.52in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">implementation</font><br>
+<br>
+<font face="Courier New, monospace">uses WinGraph, memio;</font><br>
+<br>
+<font face="Courier New, monospace">var gd,gm : integer;</font><br>
+<br>
+<font face="Courier New, monospace">procedure openscreen;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; gd := D8bit;<br>
+&nbsp;&nbsp;&nbsp; gm := m320x200;<br>
+&nbsp;&nbsp;&nbsp; initgraph(gd,gm,'ED64');<br>
+&nbsp;&nbsp;&nbsp; if graphresult &lt;&gt; grOK
+then<br>
+&nbsp;&nbsp;&nbsp; begin<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; writeln('graphic mode not
+supported');<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; halt(1)<br>
+&nbsp;&nbsp;&nbsp; end;<br>
+&nbsp;&nbsp;&nbsp; setPalette(0,black);<br>
+&nbsp;&nbsp;&nbsp; setPalette(1,white);<br>
+&nbsp;&nbsp;&nbsp; setPalette(2,red);<br>
+&nbsp;&nbsp;&nbsp; setPalette(3,cyan);<br>
+&nbsp;&nbsp;&nbsp; setPalette(4,purple);<br>
+&nbsp;&nbsp;&nbsp; setPalette(5,green);<br>
+&nbsp;&nbsp;&nbsp; setPalette(6,blue);<br>
+&nbsp;&nbsp;&nbsp; setPalette(7,yellow);<br>
+&nbsp;&nbsp;&nbsp; setPalette(8,orange);<br>
+&nbsp;&nbsp;&nbsp; setPalette(9,brown);<br>
+&nbsp;&nbsp;&nbsp; setPalette(10,lightred);<br>
+&nbsp;&nbsp;&nbsp; setPalette(11,darkgray);<br>
+&nbsp;&nbsp;&nbsp; setPalette(12,gray);<br>
+&nbsp;&nbsp;&nbsp; setPalette(13,lightgreen);<br>
+&nbsp;&nbsp;&nbsp; setPalette(14,lightblue);<br>
+&nbsp;&nbsp;&nbsp; setPalette(15,lightgray)<br>
+end;<br>
+<br>
+procedure closeScreen;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; closeGraph<br>
+end;<br>
+<br>
+procedure setPixel(x,y : word;
+color : nibble);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; putpixel(x,y,color)<br>
+end;<br>
+<br>
+function closeScreenRequest :
+Boolean;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; closeScreenRequest :=
+closeGraphRequest<br>
+end; </font>
+</p>
+<ol start="6">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Using the abstract package.</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">In the main program, openScreen should
+be called at startup. CloseScreen should be called when the program is
+ended. This is always done by a call to the error procedure, so this is
+the place to call the closeScreen. Checking the close button should be
+done at regular times. The only place we could use is the main loop
+when an interrupt is emulated. (See <a href="./ed64.pas.html">ED64.pas</a>).
+The implementation of
+vicText in the vic package is very simple: </font> </p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.98in; margin-right: 0.41in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure vicText(pos: word; val:
+byte);<br>
+var x0,y0,x,y:integer;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; x0:=(pos mod 40)*8;<br>
+&nbsp;&nbsp;&nbsp; y0:=(pos div 40)*8;<br>
+&nbsp;&nbsp;&nbsp; for x:=0 to 7 do<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; for y := 0 to 7 do<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; if
+boolean(vicPeek($1000+val*8+y) and ($80 shr x))<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; then
+setPixel(x0+x,y0+y,14) //light blue<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; else
+setPixel(x0+x,y0+y,6) //blue<br>
+end;</font></p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
+<ol start="6">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">x0 and y0 are the topleft position of
+the character to display. x and y present the pixel relative to this
+position. If we use the image of the character rom at $1000 then
+$1000+val*8 is points to the image of he character we want to display.
+Adding y gives the correct byte, and the correct pixel is read by
+masking with ($80 shr x). This routine can be optimised, but is very
+simple and will do for now.</font></p>
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Using higher reolutions than 320x200</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">If we want to use a higher resolution
+then 320x200, a c64 pixel should be displayed as a filled rectangle. We
+could implement setPixel for a certain pixelSize as:</font></p>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.49in; margin-right: 0.7in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure setPixel(x,y : word;
+color : nibble);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; setFillStyle(solidFill,color);<br>
+&nbsp;&nbsp;&nbsp; bar
+(x*pixelSize,y*pixelSize,(x+1)*pixelSize-1,(y+1)*pixelSize-1);<br>
+end;</font></p>
+<ol start="7">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">look at <a
+ href="./systemabstraction.pas.html">SystemAbstraction.pas</a>. A more
+complex implementation of openScreen accepts a number of resolutions.</font></p>
+</ol>
+<ol start="7">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Calls to the CRT package</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">Although the console has been replaced
+by a graphic screen, there are a number of console operations left in
+the program. Start and finish messages and error reporting using
+writeln will be left unchanged. They will be send to standard output.
+Remark that the trace can be reactivated since emulator screen output
+goes immediately to the graphic screen. For reading the keyboard and
+writing text to the graphical screen there is a package called WinCRT
+that replaces CRT when using WinGraph. But since we want to be
+independent of that or other packages, we will access this
+functionality through the SystemAbstaction unit. Getting a filename for
+the user will also be implemented in the SystemAbstraction unit.
+Although this is not necessary, it will permit to use file access
+widgets. But we will not do this in this manual to keep the code
+simple. (See <a href="./systemabstraction.pas.html">SystemAbstraction.pas</a>)</font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
+  </li>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Conclusion</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">This chapter provides a c64 emulator
+using pixel based characters and the complete characterset (for the
+moment only characterset one). There are a lot of old C64 programs in
+characterset mode that work already with this version of the emulator.
+You can find lots of them on the internet. These programs should not
+try to alter the memory map. In the next chapter we will introduce
+memory management for our emulator.<br>
+files : <a href="./systemabstraction.pas.html">SystemAbstraction.pas</a>,
+    <a href="./vic.pas.html">vic.pas</a>, <a href="./memio.pas.html">memio.pas</a>,
+    <a href="./ed64.pas.html">ed64.pas</a><br>
+    </font></p>
+  </li>
+</ol>
+</body>
+</html>

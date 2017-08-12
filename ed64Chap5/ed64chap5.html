@@ -1,0 +1,324 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE"
+ content="text/html; charset=windows-1252">
+  <title></title>
+  <meta name="GENERATOR" content="OpenOffice.org 2.0  (Win32)">
+  <meta name="AUTHOR" content="dendooven.m">
+  <meta name="CREATED" content="20061025;13460000">
+  <meta name="CHANGEDBY" content="Marc Dendooven">
+  <meta name="CHANGED" content="20070307;14422770">
+  <style>
+	<!--
+		@page { size: 8.27in 11.69in; margin: 0.98in }
+		P { margin-bottom: 0.08in; direction: ltr; color: #000000; widows: 2; orphans: 2 }
+		P.western { font-family: "Times New Roman", serif; font-size: 12pt; so-language: fr-FR }
+		P.cjk { font-family: "Times New Roman", serif; font-size: 12pt }
+		P.ctl { font-family: "Times New Roman", serif; font-size: 12pt; so-language: ar-SA }
+		A:link { color: #0000ff }
+		A:visited { color: #800080 }
+	-->
+	</style>
+</head>
+<body dir="ltr" lang="fr-BE" link="#0000ff" text="#000000"
+ vlink="#800080">
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in 0.06in; margin-bottom: 0in;"
+ align="center" lang="en-US">
+<b><font face="Comic Sans MS, cursive">ED64 - HOW TO WRITE A
+COMMODORE 64 EMULATOR<br>
+Copyright 2007 ir. Marc Dendooven</font></b><br>
+<br>
+<b><font face="Comic Sans MS, cursive">Chapter
+5 : Emulating interrupts. </font></b>
+</p>
+<p class="western" style="margin-bottom: 0in;" lang="fr-FR"><br>
+</p>
+<ol>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">In the last chapter we created a working
+c64 emulator. But because the standard interrupt routine is not used,
+TIME and TIME$ are not updated and the cursor is badly implemented. In
+this chapter we will implement interrupt handling for the processor.</font></p>
+  </li>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Bug Fix.</b></font></p>
+  </li>
+</ol>
+<p class="western"
+ style="margin-left: 0.49in; margin-bottom: 0in; page-break-before: auto; page-break-after: auto;"
+ align="left" lang="en-US">
+<font face="Comic Sans MS, cursive">The BRK instruction was badly
+implemented in previous versions. This is fixed now.</font></p>
+<ol start="3">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Interrupts</b></font></p>
+    <ol>
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">Normally the processor executes in the
+main processor loop like explained in chapter one. This can be
+interrupted by setting a hardware pin of the processor chip to a low
+voltage. Then the current instruction is finished and a special
+interrupt routine is executed. PC is pushed on the stack so that after
+finishing the interrupt routine, normal execution can be resumed. In
+our emulator, we will create a procedure for the interrupt handling.
+Setting the interrupt pin low will be emulated by calling this
+procedure.</font></p>
+      </li>
+      <li>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>IRQ</b></font></p>
+        <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">The first interrupt is IRQ (Interrupt
+ReQuest). This is a maskable interrupt. It will not take place when the
+I flag is set. $FFFE contains the jump address.</font></p>
+      </li>
+    </ol>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.98in; margin-right: 1.58in; margin-bottom: 0in; widows: 2; orphans: 2;"
+ lang="fr-FR">
+<font face="Courier New, monospace">procedure irq;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp;
+if not flagset(I) then<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+begin<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+setflag(B,false);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+push(hi(PC));<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+push(lo(PC));<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+push(P);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+setflag(I,true);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+PC := peek2($FFFE);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+if keypressed then addkey<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+end</font><br>
+<span lang="en-US"><font face="Courier New, monospace"><font
+ color="#000000">end</font></font></span>;</p>
+<ol>
+  <ol start="2">
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">In normal mode, the standard IRQ routine
+will be called. This routine will increment the clock, handle the
+cursor and check the keyboard. Since we have no real keyboard emulation
+yet, the 'if keypressed then addkey' line is added to the body of the
+IRQ procedure. Once we implement the keyboard, this line should be
+deleted.</font></p>
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>NMI</b></font></p>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">The NMI (Non Maskable Interrupt) is
+almost the same. Since it is not maskable the I flag is not checked.
+Jumpaddress is found in $FFFA</font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.98in; margin-right: 1.77in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure nmi;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp;
+setflag(B,false);<br>
+&nbsp;&nbsp;&nbsp; push(hi(PC));<br>
+&nbsp;&nbsp;&nbsp;
+push(lo(PC));<br>
+&nbsp;&nbsp;&nbsp; push(P);<br>
+&nbsp;&nbsp;&nbsp;
+setflag(I,true);<br>
+&nbsp;&nbsp;&nbsp; PC := peek2($FFFA)<br>
+end;</font></p>
+<ol>
+  <ol start="4">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>BRK</b></font></p>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">An interrupt can also be started from
+software. The BRK instruction does this:</font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 1.47in; margin-right: 1.73in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure brk;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp;
+setflag(B,true);<br>
+&nbsp;&nbsp;&nbsp; inc(PC);<br>
+&nbsp;&nbsp;&nbsp;
+push(hi(PC));<br>
+&nbsp;&nbsp;&nbsp; push(lo(PC));<br>
+&nbsp;&nbsp;&nbsp;
+push(P);<br>
+&nbsp;&nbsp;&nbsp; setflag(I,true);<br>
+&nbsp;&nbsp;&nbsp;
+PC := peek2($FFFE)<br>
+end;</font></p>
+<ol>
+  <ol start="4">
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">The jump vector is the same as the IRQ
+vector. The difference is made by setting the B flag. (Remark that BRK
+is a machine code instruction, IRQ and NMI are not).</font></p>
+  </ol>
+</ol>
+<ol>
+  <ol start="5">
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>RTI</b></font></p>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">After finishing an interrupt routine,
+normal execution is resumed by the RTI (Return From Interrupt)
+instruction.</font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 1.47in; margin-right: 1.28in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure rti;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp;
+P := pull;<br>
+&nbsp;&nbsp;&nbsp; PC := pull;<br>
+&nbsp;&nbsp;&nbsp; PC
+:= PC + pull*256<br>
+end;</font></p>
+<ol>
+  <ol start="5">
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">An interrupt call and its return
+statement are much like a subroutine call (JSR, RTS). The main
+difference is that in an interrupt call the P flag is pushed on the
+stack. </font> </p>
+    <li>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Reset</b></font></p>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">When the reset pin is set low, the
+processor is reset. This can be emulated just like an interrupt:</font></p>
+    </li>
+  </ol>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 1.47in; margin-right: 1.75in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure reset;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp;
+PC := peek2($FFFC);<br>
+&nbsp;&nbsp;&nbsp; setflag(I,true)<br>
+end;</font></p>
+<ol start="4">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Calling the IRQ in our emulator.</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">Like stated in previous chapters, the
+IRQ is called 50 times a second by a hardware clocksignal.&nbsp; We
+could use our counter to call the IRQ in place of the keyboard routine
+(the keyboard is already checked in the IRQ) but this would give an
+inaccurate value for the time. We can replace the counter value by a
+real time check:</font></p>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.98in; margin-right: 0.82in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">var startTime : TDateTime;<br>
+&nbsp;&nbsp;&nbsp;
+timer50hz : Int64 = 20;<br>
+...<br>
+startTime := now;</font></p>
+<ol start="4">
+  <p class="western" style="margin-bottom: 0in; widows: 2; orphans: 2;"
+ lang="en-US"> <font face="Comic Sans MS, cursive"><font size="3">in
+the irq routine, timer50Hz is incremented by 20ms.</font></font></p>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.98in; margin-right: 0.82in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">timer50Hz := timer50Hz+20</font></p>
+<ol start="4">
+  <p class="western" style="margin-bottom: 0in; widows: 2; orphans: 2;"
+ lang="en-US"> <font face="Comic Sans MS, cursive"><font size="3">and
+in the main loop:</font></font></p>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.98in; margin-right: 0.82in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">if millisecondsbetween(now
+,startTime)*6 &gt; timer50Hz*5 then<br>
+begin<br>
+&nbsp;&nbsp;&nbsp;
+irq;<br>
+end</font></p>
+<ol start="5">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">For some reason, the emulator behaves as
+an american (60Hz) computer. For the moment we fix this multiplying by
+6 resp. 5 in the inequality.</font></p>
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><br>
+You can check out the correct time by the following c64 basic program::<br>
+  </font><br>
+  </p>
+  <ol>
+    <ol>
+      <p class="western" style="margin-bottom: 0in;" lang="en-US"><img
+ src="ed64chap5_html_19a96f43.jpg" name="graphics1" align="left"
+ border="0" height="238" width="332"><br clear="left">
+      </p>
+    </ol>
+  </ol>
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">The symbol between the quotes is “cursor
+up”. <br>
+  </font><br>
+  </p>
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">We now have a real c64 cursor. Of course
+we have to switch off the crt cursor (by calling cursorOff) and we can
+delete the line that placed the crt cursor. </font> </p>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Conclusion.</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">This chapters replaces the crt cursor
+with the c64 native cursor. This is important for future development as
+we leave the crt screen for a graphic screen. TIME and TIME$ are
+updated.</font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">In the next chapter we will use a
+graphic screen to display the real characterset of the c64.<br>
+files: <a href="./ed64.pas.html">ed64.pas</a>, <a
+ href="./memio.pas.html">memio.pas</a>, <a href="./vic.pas.html">vic.pas</a></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="fr-FR">
+<br>
+</p>
+</body>
+</html>
