@@ -1,0 +1,291 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE"
+ content="text/html; charset=windows-1252">
+  <title></title>
+  <meta name="GENERATOR" content="OpenOffice.org 2.0  (Win32)">
+  <meta name="AUTHOR" content="dendooven.m">
+  <meta name="CREATED" content="20061025;13460000">
+  <meta name="CHANGEDBY" content="Marc Dendooven">
+  <meta name="CHANGED" content="20070723;15464881">
+  <style>
+	<!--
+		@page { size: 8.27in 11.69in; margin: 0.98in }
+		P { margin-bottom: 0.08in; direction: ltr; color: #000000; widows: 2; orphans: 2 }
+		P.western { font-family: "Times New Roman", serif; font-size: 12pt; so-language: fr-FR }
+		P.cjk { font-family: "Times New Roman", serif; font-size: 12pt }
+		P.ctl { font-family: "Times New Roman", serif; font-size: 12pt; so-language: ar-SA }
+		A:link { color: #0000ff }
+		A:visited { color: #800080 }
+	-->
+	</style>
+</head>
+<body dir="ltr" lang="fr-BE" link="#0000ff" text="#000000"
+ vlink="#800080">
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-bottom: 0in;"
+ align="center" lang="en-US">
+<font face="Comic Sans MS, cursive"><b>ED64 - HOW TO WRITE A
+COMMODORE 64 EMULATOR<br>
+By ir. Marc Dendooven</b></font><br>
+<br>
+<font face="Comic Sans MS, cursive"><b>Chapter 8: The VIC –
+part 1: memory management </b></font>
+</p>
+<ol>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">Our emulator uses for the moment a very
+simple text output: the memory range from 1024 to 2023 is monitored,
+and an access to this memory range results in a copy from character rom
+to the screen. Now we will extend the functionality of the VIC (Video
+Interface Chip). In this chapter we will provide IO access to the VIC
+registers, and use the information in these registers to let access the
+VIC other ranges in memory. (for text and for characterset data)</font></p>
+  </li>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Communication with the VIC</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">First we will define the VIC registers
+in the VIC unit:</font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
+    <p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Courier New, monospace">reg :
+array[$D000..$D02E] of byte;</font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">and two methods for accessing them :</font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Arial, sans-serif">function vicRead(address : word) :
+byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $D012 : vicRead := $00;
+//raster<br>
+&nbsp;&nbsp;&nbsp; else<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; vicRead := reg[address]<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<p class="western" style="margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+</p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Arial, sans-serif">procedure vicWrite(address : word ;
+val : byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; reg[address] := val;<br>
+end;</font></p>
+<ol start="2">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">reading $D012 (the raster register) will
+return 0 for the reason explained in chapter 3.</font></p>
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">these methods will be called by ioIn and
+ioOut in the memio unit:</font><br>
+  </p>
+</ol>
+<p class="western" style="margin-bottom: 0in;" lang="en-US">
+</p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">function ioIn(address : word) :
+byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $D000..$D02E : ioIn :=
+vicRead(address);<br>
+&nbsp;&nbsp;&nbsp; else<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ioIn := $FF<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure ioOut(address : word ;
+value : byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $D000..$D02E :
+vicWrite(address,value);<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<ol start="2">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Getting the addresses</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">VIC register $D018 contains the screen
+and characterset addresses. But the VIC can only address a range of
+16k. The two most significant address lines are provided by one of the
+CIA chips, and controlled by CIA register $DD00.<br>
+In our VIC emulation, we will use tree address variables:</font><br>
+    </p>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; font-family: Courier New,Courier,monospace; margin-left: 40px;"
+ lang="en-US"> bankAddress : word;<br>
+screenAddress : word;<br>
+charRomAddress:
+word; </p>
+<ol start="3">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><span style="">bankAddress provides an
+offset for the selected 16k bank, and the others point to an address
+inside that bank.<br>
+Since the bankaddress is selected by a CIA register and not by a VIC
+register, we will provide a method to set it (because it will be set
+from the memio package and not from inside the vic package) :</span></font><br>
+  </p>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Arial, sans-serif">procedure vicBank(val : byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; bankAddress := not(val and 3) *
+$4000;<br>
+end;</font></p>
+<ol start="3">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><span style="">The addresses are
+represented by some bits in the register. a bit operation is necessary
+to calculate the address.</span><b><br>
+  </b><span style="">This method is called from the ioOut procedure in
+memio. (see <a href="./memio.pas.html">memio.pas</a>)<br>
+  <br>
+the othes variabels are VIC registers and are modified in vicWrite:</span></font><br>
+  </p>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure vicWrite(address : word
+; val : byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; reg[address] := val;<br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $D018 : begin<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; screenAddress
+:= (val shr 4)*$400;<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; charRomAddress
+:= (val and $0E)*$400;<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; end<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<ol start="3">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">Now vicText can be changed to use the
+correct character set address :</font><br>
+  </p>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure vicText(pos: word; val:
+byte);<br>
+var x0,y0,x,y:integer;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; x0:=(pos mod 40)*8;<br>
+&nbsp;&nbsp;&nbsp; y0:=(pos div 40)*8;<br>
+&nbsp;&nbsp;&nbsp; for x:=0 to 7 do<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; for y := 0 to 7 do<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; if
+boolean(vicPeek(bankAddress+charRomAddress+val*8+y)
+and ($80 shr x))<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; then
+setPixel(x0+x,y0+y,14) //lightblue<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; else
+setPixel(x0+x,y0+y,6) //blue</font><br>
+<font face="Courier New, monospace"><br>
+end;</font></p>
+<ol start="3">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Monitoring the text area<br>
+    </b><span style="">Until now, text is written when a poke occurs in
+the range 1000 – 1999. But now the textarea is variable. To resolve
+this we will create in memio to variables and a write method : </span></font><br>
+    </p>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">watchVicFrom,watchVicTo : word;</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure
+setVicWatchRange(startAddress,endAddress : word);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; watchVicFrom := startAddress;<br>
+&nbsp;&nbsp;&nbsp; watchVicTo := endAddress;<br>
+end;</font></p>
+<ol start="4">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">Since a case instruction can't select on
+variables, an if then construction will be used :</font></p>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure poke(address : word ;
+value : byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; ram[address] := value;<br>
+&nbsp;&nbsp;&nbsp; if &nbsp;&nbsp;&nbsp;&nbsp; (address &gt;=
+watchVicFrom) <br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; and (address &lt;= watchVicTo) <br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; then
+VicText(address-watchVicFrom,value);<br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $0001 :
+ioport(value);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $D000..$DFFF : if hiORlo
+then ioOut(address,value);<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<ol start="4">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><span style="">setVicWartchRange is
+called everytime bankAddress
+or screenAddress is changed. (in the vicBank and in the vicWrite
+procedures - see <a href="./vic.pas.html">vic.pas</a>) </span></font><br>
+  </p>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Conclusion<br>
+    </b><span style="">Now we can use the complete memory range to
+store our text- and character data. Observe that 'PRINT CHR$(14)' now
+switches to characterset 2. Also user defined charactersets can now be
+used.<br>
+In the following chapter we will introduce color. </span></font> </p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
+  </li>
+</ol>
+</body>
+</html>

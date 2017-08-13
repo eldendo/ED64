@@ -1,0 +1,257 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE"
+ content="text/html; charset=windows-1252">
+  <title></title>
+  <meta name="GENERATOR" content="OpenOffice.org 2.0  (Win32)">
+  <meta name="AUTHOR" content="dendooven.m">
+  <meta name="CREATED" content="20061025;13460000">
+  <meta name="CHANGEDBY" content="Marc Dendooven">
+  <meta name="CHANGED" content="20070718;13385100">
+  <style>
+	<!--
+		@page { size: 8.27in 11.69in; margin: 0.98in }
+		P { margin-bottom: 0.08in; direction: ltr; color: #000000; widows: 2; orphans: 2 }
+		P.western { font-family: "Times New Roman", serif; font-size: 12pt; so-language: fr-FR }
+		P.cjk { font-family: "Times New Roman", serif; font-size: 12pt }
+		P.ctl { font-family: "Times New Roman", serif; font-size: 12pt; so-language: ar-SA }
+		A:link { color: #0000ff }
+		A:visited { color: #800080 }
+	-->
+	</style>
+</head>
+<body dir="ltr" lang="fr-BE" link="#0000ff" text="#000000"
+ vlink="#800080">
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-bottom: 0in;"
+ align="center" lang="en-US">
+<font face="Comic Sans MS, cursive"><b>ED64 - HOW TO WRITE A
+COMMODORE 64 EMULATOR<br>
+By ir. Marc Dendooven</b></font><br>
+<br>
+<font face="Comic Sans MS, cursive"><b>Chapter 7 Memory management. </b></font>
+</p>
+<ol>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">The emulator works fine for basic
+programs (if they do not try to access non-emulated hardware) and for
+small machine code if placed in a usable ram space (like the $C000
+region). On the c64, the rom and memory mapped io can be banked in or
+out to make place for larger programs in ram. Also the video rom, which
+is for the moment invisible for the user, can be banked in. This will
+be emulated in this chapter.</font></p>
+  </li>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Bugfix</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">The V flag was not correctly
+tested in the ADC and SBC instructions. This has now been corrected.</font></p>
+<ol start="3">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>IO access</b></font></p>
+  </li>
+</ol>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">IO access has been done by a
+function called io. In fact this function just treats input
+functionality. In will be renamed to ioIn. Output will be handled by
+a procedure called ioOut. For the moment this procedure will do
+nothing.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">function ioIn(address : word) :
+byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $D012 : ioIn :=
+$00<br>
+&nbsp;&nbsp;&nbsp; else<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ioIn := $FF<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure ioOut(address : word ;
+value : byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; ;<br>
+end;</font></p>
+<ol start="4">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>How banking works</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">The memory map can be changed by 5
+(hardware) lines called ..., ..., HIRAM, LORAM and CHAREN. The first
+two are changed if a cartridge is present. We will ignore them. HIRAM,
+LORAM and CHAREN are driven by the io port of the 6510 processor. This
+port can be accessed at address 0001. Address 0000 sets the direction
+for this port.</font></p>
+  </li>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Accessing the io port</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">the port can be set by intercepting it
+in the poke. </font> </p>
+  </li>
+</ol>
+<p class="western" style="margin-bottom: 0in;" lang="en-US">
+</p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure poke(address : word ;
+value : byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; ram[address] := value;<br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $0001 :
+ioport(value);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $400..$7E7 :
+VicText(address-$400,value)<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">We can represent LORAM, HIRAM and
+CHAREN by booleans. They can be found respectively at bit 0,1 and
+2 of the (masked) io register.</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure ioport(port : byte);<br>
+var maskedPort : byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; maskedPort := port
+and ram[0];<br>
+&nbsp;&nbsp;&nbsp; loram := boolean
+(maskedport and 1);<br>
+&nbsp;&nbsp;&nbsp; hiram := boolean
+(maskedPort and 2);<br>
+&nbsp;&nbsp;&nbsp; charen := boolean
+(maskedport and 4);<br>
+end;</font></p>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive">Since the effective banking
+signals are a logical combination of those lines we define :</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Courier New, monospace">hiANDlo := hiram
+and loram;<br>
+hiORlo := hiram
+or loram;</font></p>
+<ol start="6">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Banking</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">Effectively banking can be emulated by
+choosing the right destination in the peek and poke instructions:</font></p>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure poke(address : word ;
+value : byte);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; ram[address] := value;<br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $0001 :
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; ioport(value);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $400..$7E7 :
+&nbsp;&nbsp; VicText(address-$400,value);<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $D000..$DFFF :&nbsp; if hiORlo
+then ioOut(address,value)<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US">
+</p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+<p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">function peek(address : word) :
+byte;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; case address of<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $A000..$BFFF : if hiANDlo
+then peek := basic_rom[address]<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; else
+peek := ram[address];<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $D000..$DFFF : if hiORlo<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; then<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; begin<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; if charen
+then peek := ioIn(address)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; else
+peek := char_rom[address];<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; end<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp; else peek :=
+ram[address];<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $E000..$FFFF : if hiram then
+peek := kernal_rom[address]<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; else
+peek := ram[address];<br>
+&nbsp;&nbsp;&nbsp; else<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; peek := ram[address]<br>
+&nbsp;&nbsp;&nbsp; end<br>
+end;</font></p>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<font face="Comic Sans MS, cursive"><br>
+remark : again, this is not
+the most performant solution, but is simple and will do for now.</font></p>
+<p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
+ lang="en-US">
+<br>
+</p>
+<ol start="7">
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Conclusion</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">In this chapter we enabled banking rom
+and io. By doing so the emulator can now run programs which use
+underlying ram. These are machine code programs which doesn't use the
+rom's (including compiled programs) and alternatives for the rom's
+loaded in ram. Also the character rom can now be read. See <a
+ href="%5Cmemio.pas.html">memio.pas</a><br>
+In the next chapter we will emulate some io hardware (the VIC).</font></p>
+  </li>
+</ol>
+</body>
+</html>

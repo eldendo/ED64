@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE"
+ content="text/html; charset=windows-1252">
+  <title></title>
+  <meta name="GENERATOR" content="OpenOffice.org 2.0  (Win32)">
+  <meta name="AUTHOR" content="dendooven.m">
+  <meta name="CREATED" content="20061025;13460000">
+  <meta name="CHANGEDBY" content="Marc Dendooven">
+  <meta name="CHANGED" content="20070721;13011300">
+  <style>
+	<!--
+		@page { size: 8.27in 11.69in; margin: 0.98in }
+		P { margin-bottom: 0.08in; direction: ltr; color: #000000; widows: 2; orphans: 2 }
+		P.western { font-family: "Times New Roman", serif; font-size: 12pt; so-language: fr-FR }
+		P.cjk { font-family: "Times New Roman", serif; font-size: 12pt }
+		P.ctl { font-family: "Times New Roman", serif; font-size: 12pt; so-language: ar-SA }
+		A:link { color: #0000ff }
+		A:visited { color: #800080 }
+	-->
+	</style>
+</head>
+<body dir="ltr" lang="fr-BE" link="#0000ff" text="#000000"
+ vlink="#800080">
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-bottom: 0in;"
+ align="center" lang="en-US">
+<font face="Comic Sans MS, cursive"><b>ED64 - HOW TO WRITE A
+COMMODORE 64 EMULATOR<br>
+By ir. Marc Dendooven</b></font><br>
+<br>
+<font face="Comic Sans MS, cursive"><b>Chapter 9: The VIC –
+part 2 : color. </b></font>
+</p>
+<ol>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">In the previous chapter we adapted the
+memory access of the VIC. Now we will add color.</font></p>
+  </li>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Emulating color ram</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">The color ram is a 1K nibble (4 bits)
+memory. Although it is an independent memory chip, we will place it in
+the vic unit, since the vic uses it intensively:</font><br>
+    </p>
+    <p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in;"
+ lang="en-US"> <font face="Courier New, monospace">color_ram :
+array[$D800..$DBFF] of nibble;</font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">We also provide two access methods :</font><br>
+    </p>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure colorWrite(address :
+word; color : nibble);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; color_ram[address] := color;<br>
+end;</font></p>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">function colorRead(address :
+word) : nibble;<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; colorRead :=
+color_ram[address]<br>
+end;</font></p>
+<ol start="2">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive">S<span style="">ince the color
+ram appears in the io section of the memory map, these access methods
+are called the usual way from ioIn and ioOut.</span></font><br>
+  </p>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Using the color ram</b></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
+ face="Comic Sans MS, cursive">Now we can use color in vicText:</font><br>
+    </p>
+  </li>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure vicText(pos: word; val:
+byte);<br>
+...<br>
+&nbsp;&nbsp;&nbsp; if ...<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; then
+setPixel(x0+x,y0+y,color_ram[$D800+pos])<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; else
+setPixel(x0+x,y0+y,reg[$D021])<br>
+end;</font></p>
+<ol start="3">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><span style="">backgroundcolor can be
+found in VIC register $D021.<br>
+  <br>
+Now text is displayed in the right color. But what if someone alters
+the color whit out writing to the text area? We can intercept this by
+rewriting the text in the color write method:</span></font><br>
+  </p>
+</ol>
+<p class="western"
+ style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-bottom: 0in; margin-left: 40px;"
+ lang="en-US">
+<font face="Courier New, monospace">procedure colorWrite(address :
+word; color : nibble);<br>
+begin<br>
+&nbsp;&nbsp;&nbsp; color_ram[address] := color;<br>
+&nbsp;&nbsp;&nbsp; vicText(address-$D800,peek(
+address-$D800+bankAddress+screenAddress))<br>
+end;</font></p>
+<ol start="3">
+  <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><span style="">This is not efficient
+since most writes to the screen will be doubled that way. But it works.</span></font><br>
+  </p>
+  <li>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b>Conclusion<br>
+    </b><span style="">Now we have color in our textmode. In the next
+chapter we will provide other vic modes : Hi resolution and multicolor
+modes.<br>
+See listing in <a href="./memio.pas.html">memio.pas</a> and <a
+ href="./vic.pas.html">vic.pas</a><br>
+    </span></font></p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
+ face="Comic Sans MS, cursive"><b><br>
+    </b></font><br>
+    </p>
+    <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
+  </li>
+</ol>
+</body>
+</html>
