@@ -7,10 +7,10 @@ A tutorial about writing a Commodore 64 Emulator (and a c64 emulator)
 [Chapter4](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap4/ed64chap4.html)  
 [Chapter5](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap5/ed64chap5.html)  
 [Chapter6](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap6/ed64chap6.html)  
-[Chapter7](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap7/ed64chap7.html)  
-[Chapter8](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap8/ed64chap8.html)  
-[Chapter9](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap9/ed64chap9.html)  
-[Chapter10](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap10/ed64chap10.html)  
+[Chapter7](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap7/ed64Chap7.html)  
+[Chapter8](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap8/ed64Chap8.html)  
+[Chapter9](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap9/ed64Chap9.html)  
+[Chapter10](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap10/ed64Chap10.html)  
 
 or look at the old site: https://web.archive.org/web/20080112195019/http://ed64.eldendo.be/  
 
