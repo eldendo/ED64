@@ -29,8 +29,9 @@ IO hardware in the C64 is memory mapped. This means that the user communicates w
 1. Memory
 The user sees the memory as a 64k array of byte. In pascal we can define:
 
-var
-    ram : array [0..$FFFF] of byte;
+```pascal
+var ram : array [0..$FFFF] of byte;
+```
 
 remark : $ stands for hexadecimal
 
