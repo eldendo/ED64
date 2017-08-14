@@ -38,7 +38,7 @@ remark : $ stands for hexadecimal
 But that is too simple: dependant of the memory configuration a certain range in the memory can be occupied by RAM, ROM or even memory mapped hardware.
 
 We will use a technique called data abstraction: we will NEVER access the memory immediately, but always by using two ‘methods’ to read and write to the memory.
-
+```pascal
 procedure poke(address : word ; value : byte);
 begin
     ram[address] := value;
@@ -48,20 +48,21 @@ function peek(address : word) : byte;
 begin
     peek := ram[address];
 end;
-
+```
 So when we change the implementation of the memory later on, and adapt the peek and poke methods accordingly without changing the interface (that is the way a function appears in a program calling it), the rest of the program should not be altered. In Freepascal we can enforce this by putting this code in a separate unit.
 
 See the complete code in the file memio.pas
 
 2. Processor registers
 The registers are simply declared in our main program:
-
+```pascal
 var
     A,X,Y,S,P,IR : byte;
     PC : word;
-
+```
 3. Processor main loop
 The processor executes machine code programs. A machine code program is nothing else then a sequence of bytes somewhere in memory. The program counter (PC) is a 16 bit register that points to the next byte to be treated. The content of that memory location is copied in the instruction register (IR) and PC is incremented so that it points to the next memory location. The instruction in IR is then interpreted and the whole process is started again in an infinite loop.
+```pascal
 while true do
 begin
     IR := peek(PC);
@@ -73,7 +74,7 @@ begin
     else : … unknown instruction encountered
 end;
 end.
-
+```
 Remark that pascal has no infinit loop structure. ‘While true do’ will execute well, but if the compiler doesn’t optimize this, a check will be performed each loop. This will slow up the emulator considerabely.
 
 4. The program
@@ -82,7 +83,7 @@ We can now put these lines together into an executable program. To bring the emu
 You can find the main program in the file ED64.pas
 
 When we compile memio.pas and ED64.pas, and execute the code we will see the following output:
-
+```
 --------------------------------------
 Welcome to EL DENDO's c64 emulator
 (c) 2006 ir. Marc Dendooven
@@ -96,6 +97,6 @@ PC=0002 IR=03
 Execution has been ended
 push return to exit
 --------------------------------------
-
+```
 Quite simple isn’t it? The only thing we still need to do is to ‘fill up the case instruction’ with the machine code instructions for the 6510 processor. This will be done in Chapter 2
 
