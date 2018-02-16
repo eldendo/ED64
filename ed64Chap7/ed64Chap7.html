@@ -26,18 +26,18 @@
 <p class="western"
  style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-bottom: 0in;"
  align="center" lang="en-US">
-<font face="Comic Sans MS, cursive"><b>ED64 - HOW TO WRITE A
+<font face=" , cursive"><b>ED64 - HOW TO WRITE A
 COMMODORE 64 EMULATOR<br>
 By ir. Marc Dendooven</b></font><br>
 <br>
-<font face="Comic Sans MS, cursive"><b>Chapter 7 Memory management. </b></font>
+<font face=" , cursive"><b>Chapter 7 Memory management. </b></font>
 </p>
 <ol>
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+ face=" , cursive"><b>Introduction</b></font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">The emulator works fine for basic
+ face=" , cursive">The emulator works fine for basic
 programs (if they do not try to access non-emulated hardware) and for
 small machine code if placed in a usable ram space (like the $C000
 region). On the c64, the rom and memory mapped io can be banked in or
@@ -47,22 +47,22 @@ be emulated in this chapter.</font></p>
   </li>
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Bugfix</b></font></p>
+ face=" , cursive"><b>Bugfix</b></font></p>
   </li>
 </ol>
 <p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">The V flag was not correctly
+<font face=" , cursive">The V flag was not correctly
 tested in the ADC and SBC instructions. This has now been corrected.</font></p>
 <ol start="3">
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>IO access</b></font></p>
+ face=" , cursive"><b>IO access</b></font></p>
   </li>
 </ol>
 <p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">IO access has been done by a
+<font face=" , cursive">IO access has been done by a
 function called io. In fact this function just treats input
 functionality. In will be renamed to ioIn. Output will be handled by
 a procedure called ioOut. For the moment this procedure will do
@@ -91,9 +91,9 @@ end;</font></p>
 <ol start="4">
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>How banking works</b></font></p>
+ face=" , cursive"><b>How banking works</b></font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">The memory map can be changed by 5
+ face=" , cursive">The memory map can be changed by 5
 (hardware) lines called ..., ..., HIRAM, LORAM and CHAREN. The first
 two are changed if a cartridge is present. We will ignore them. HIRAM,
 LORAM and CHAREN are driven by the io port of the 6510 processor. This
@@ -102,9 +102,9 @@ for this port.</font></p>
   </li>
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Accessing the io port</b></font></p>
+ face=" , cursive"><b>Accessing the io port</b></font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">the port can be set by intercepting it
+ face=" , cursive">the port can be set by intercepting it
 in the poke. </font> </p>
   </li>
 </ol>
@@ -126,7 +126,7 @@ VicText(address-$400,value)<br>
 end;</font></p>
 <p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">We can represent LORAM, HIRAM and
+<font face=" , cursive">We can represent LORAM, HIRAM and
 CHAREN by booleans. They can be found respectively at bit 0,1 and
 2 of the (masked) io register.</font></p>
 <p class="western"
@@ -146,7 +146,7 @@ and ram[0];<br>
 end;</font></p>
 <p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">Since the effective banking
+<font face=" , cursive">Since the effective banking
 signals are a logical combination of those lines we define :</font></p>
 <p class="western"
  style="border: 1px solid rgb(0, 0, 0); padding: 0.02in; margin-left: 0.49in; margin-bottom: 0in;"
@@ -157,9 +157,9 @@ or loram;</font></p>
 <ol start="6">
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Banking</b></font></p>
+ face=" , cursive"><b>Banking</b></font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">Effectively banking can be emulated by
+ face=" , cursive">Effectively banking can be emulated by
 choosing the right destination in the peek and poke instructions:</font></p>
   </li>
 </ol>
@@ -232,7 +232,7 @@ peek := ram[address];<br>
 end;</font></p>
 <p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
  lang="en-US">
-<font face="Comic Sans MS, cursive"><br>
+<font face=" , cursive"><br>
 remark : again, this is not
 the most performant solution, but is simple and will do for now.</font></p>
 <p class="western" style="margin-left: 0.49in; margin-bottom: 0in;"
@@ -242,14 +242,14 @@ the most performant solution, but is simple and will do for now.</font></p>
 <ol start="7">
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Conclusion</b></font></p>
+ face=" , cursive"><b>Conclusion</b></font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">In this chapter we enabled banking rom
+ face=" , cursive">In this chapter we enabled banking rom
 and io. By doing so the emulator can now run programs which use
 underlying ram. These are machine code programs which doesn't use the
 rom's (including compiled programs) and alternatives for the rom's
 loaded in ram. Also the character rom can now be read. See <a
- href="memio.pas.html">memio.pas</a><br>
+ href="%5Cmemio.pas.html">memio.pas</a><br>
 In the next chapter we will emulate some io hardware (the VIC).</font></p>
   </li>
 </ol>
