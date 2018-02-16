@@ -35,31 +35,31 @@ Here I will emulate the user model of the commodore 64: the way a (machine code)
    
    1. Memory
       
-         The user sees the memory as a 64k array of byte. In pascal we can define:
+      The user sees the memory as a 64k array of byte. In pascal we can define:
 
-```pascal
-var ram : array [0..$FFFF] of byte;
-```
+      ```pascal
+      var ram : array [0..$FFFF] of byte;
+      ```
 
-remark : $ stands for hexadecimal
+      remark : $ stands for hexadecimal
 
-But that is too simple: dependant of the memory configuration a certain range in the memory can be occupied by RAM, ROM or even memory mapped hardware.
+      But that is too simple: dependant of the memory configuration a certain range in the memory can be occupied by RAM, ROM or even memory mapped hardware.
 
-We will use a technique called data abstraction: we will NEVER access the memory immediately, but always by using two ‘methods’ to read and write to the memory.
-```pascal
-procedure poke(address : word ; value : byte);
-begin
-    ram[address] := value;
-end;
+      We will use a technique called data abstraction: we will NEVER access the memory immediately, but always by using two ‘methods’ to read and write to the memory.
+      ```pascal
+      procedure poke(address : word ; value : byte);
+      begin
+          ram[address] := value;
+      end;
 
-function peek(address : word) : byte;
-begin
-    peek := ram[address];
-end;
-```
-So when we change the implementation of the memory later on, and adapt the peek and poke methods accordingly without changing the interface (that is the way a function appears in a program calling it), the rest of the program should not be altered. In Freepascal we can enforce this by putting this code in a separate unit.
+      function peek(address : word) : byte;
+      begin
+          peek := ram[address];
+      end;
+      ```
+      So when we change the implementation of the memory later on, and adapt the peek and poke methods accordingly without changing the interface (that is the way a function appears in a program calling it), the rest of the program should not be altered. In Freepascal we can enforce this by putting this code in a separate unit.
 
-See the complete code in the file memio.pas
+      See the complete code in the file memio.pas
 
 2. Processor registers
 The registers are simply declared in our main program:
