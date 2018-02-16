@@ -26,19 +26,19 @@
 <p class="western"
  style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-bottom: 0in;"
  align="center" lang="en-US">
-<font face="Comic Sans MS, cursive"><b>ED64 - HOW TO WRITE A
+<font face=" , cursive"><b>ED64 - HOW TO WRITE A
 COMMODORE 64 EMULATOR<br>
 By ir. Marc Dendooven</b></font><br>
 <br>
-<font face="Comic Sans MS, cursive"><b>Chapter 8: The VIC –
+<font face=" , cursive"><b>Chapter 8: The VIC –
 part 1: memory management </b></font>
 </p>
 <ol>
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+ face=" , cursive"><b>Introduction</b></font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">Our emulator uses for the moment a very
+ face=" , cursive">Our emulator uses for the moment a very
 simple text output: the memory range from 1024 to 2023 is monitored,
 and an access to this memory range results in a copy from character rom
 to the screen. Now we will extend the functionality of the VIC (Video
@@ -48,9 +48,9 @@ VIC other ranges in memory. (for text and for characterset data)</font></p>
   </li>
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Communication with the VIC</b></font></p>
+ face=" , cursive"><b>Communication with the VIC</b></font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">First we will define the VIC registers
+ face=" , cursive">First we will define the VIC registers
 in the VIC unit:</font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
     <p class="western"
@@ -59,7 +59,7 @@ in the VIC unit:</font></p>
 array[$D000..$D02E] of byte;</font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">and two methods for accessing them :</font></p>
+ face=" , cursive">and two methods for accessing them :</font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
   </li>
 </ol>
@@ -90,10 +90,10 @@ end;</font></p>
 <ol start="2">
   <p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
   <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">reading $D012 (the raster register) will
+ face=" , cursive">reading $D012 (the raster register) will
 return 0 for the reason explained in chapter 3.</font></p>
   <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">these methods will be called by ioIn and
+ face=" , cursive">these methods will be called by ioIn and
 ioOut in the memio unit:</font><br>
   </p>
 </ol>
@@ -128,9 +128,9 @@ end;</font></p>
   <p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Getting the addresses</b></font></p>
+ face=" , cursive"><b>Getting the addresses</b></font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">VIC register $D018 contains the screen
+ face=" , cursive">VIC register $D018 contains the screen
 and characterset addresses. But the VIC can only address a range of
 16k. The two most significant address lines are provided by one of the
 CIA chips, and controlled by CIA register $DD00.<br>
@@ -146,7 +146,7 @@ charRomAddress:
 word; </p>
 <ol start="3">
   <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><span style="">bankAddress provides an
+ face=" , cursive"><span style="">bankAddress provides an
 offset for the selected 16k bank, and the others point to an address
 inside that bank.<br>
 Since the bankaddress is selected by a CIA register and not by a VIC
@@ -164,7 +164,7 @@ $4000;<br>
 end;</font></p>
 <ol start="3">
   <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><span style="">The addresses are
+ face=" , cursive"><span style="">The addresses are
 represented by some bits in the register. a bit operation is necessary
 to calculate the address.</span><b><br>
   </b><span style="">This method is called from the ioOut procedure in
@@ -194,7 +194,7 @@ begin<br>
 end;</font></p>
 <ol start="3">
   <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">Now vicText can be changed to use the
+ face=" , cursive">Now vicText can be changed to use the
 correct character set address :</font><br>
   </p>
 </ol>
@@ -224,7 +224,7 @@ end;</font></p>
   <p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Monitoring the text area<br>
+ face=" , cursive"><b>Monitoring the text area<br>
     </b><span style="">Until now, text is written when a poke occurs in
 the range 1000 – 1999. But now the textarea is variable. To resolve
 this we will create in memio to variables and a write method : </span></font><br>
@@ -247,7 +247,7 @@ end;</font></p>
 <ol start="4">
   <p class="western" style="margin-bottom: 0in;" lang="en-US"></p>
   <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">Since a case instruction can't select on
+ face=" , cursive">Since a case instruction can't select on
 variables, an if then construction will be used :</font></p>
 </ol>
 <p class="western"
@@ -271,14 +271,14 @@ then ioOut(address,value);<br>
 end;</font></p>
 <ol start="4">
   <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><span style="">setVicWartchRange is
+ face=" , cursive"><span style="">setVicWartchRange is
 called everytime bankAddress
 or screenAddress is changed. (in the vicBank and in the vicWrite
 procedures - see <a href="./vic.pas.html">vic.pas</a>) </span></font><br>
   </p>
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Conclusion<br>
+ face=" , cursive"><b>Conclusion<br>
     </b><span style="">Now we can use the complete memory range to
 store our text- and character data. Observe that 'PRINT CHR$(14)' now
 switches to characterset 2. Also user defined charactersets can now be
