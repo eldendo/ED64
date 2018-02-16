@@ -1,7 +1,6 @@
 # ED64
 A tutorial about writing a Commodore 64 Emulator (and a c64 emulator)  
 
-*remark: I will change the font of the tutorial text as soon as possible*
 
 [Chapter1](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap1/ed64chap1.html)  
 [Chapter2](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap2/ed64chap2.html)  
