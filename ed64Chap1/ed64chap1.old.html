@@ -85,10 +85,10 @@ programmed.</font></p>
 <font face="Comic Sans MS, cursive">To write an emulator, you need a
 good knowledge of the emulated machine. Some experience with machine
 code programming on the c64 will be an advantage. The c64 is a well
-documented machine. I used the ìCommodore 64 Programmers
-Reference Guideî (Commodore) and ìWhatís really
-inside the Commodore 64î (Milton Bathurst). The second book is
-a documented assembler listing of the C64 ROMís. A lot of
+documented machine. I used the ‚ÄúCommodore 64 Programmers
+Reference Guide‚Äù (Commodore) and ‚ÄúWhat‚Äôs really
+inside the Commodore 64‚Äù (Milton Bathurst). The second book is
+a documented assembler listing of the C64 ROM‚Äôs. A lot of
 information can be found on the internet too.</font></p>
 <p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
  lang="en-US">
@@ -223,7 +223,7 @@ memory can be occupied by RAM, ROM or even memory mapped hardware.</font></p>
 <p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
  lang="en-US"> <font face="Comic Sans MS, cursive">We will use a
 technique called data abstraction: we will NEVER access the memory
-immediately, but always by using two ëmethodsí to read and write to the
+immediately, but always by using two ‚Äòmethods‚Äô to read and write to the
 memory.</font></p>
 <p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
  lang="en-US"> <br>
@@ -308,12 +308,12 @@ begin<br>
 &nbsp;&nbsp;&nbsp; IR := peek(PC);<br>
 &nbsp;&nbsp;&nbsp; inc(PC);<br>
 &nbsp;&nbsp;&nbsp; case IR of<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $00 : Ö interpret
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $00 : ‚Ä¶ interpret
 instruction $00<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $01 : Ö interpret
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; $01 : ‚Ä¶ interpret
 instruction $01<br>
-&nbsp;&nbsp;&nbsp; Ö<br>
-&nbsp;&nbsp;&nbsp; else : Ö unknown
+&nbsp;&nbsp;&nbsp; ‚Ä¶<br>
+&nbsp;&nbsp;&nbsp; else : ‚Ä¶ unknown
 instruction encountered<br>
 end;<br>
 end.</font></p>
@@ -322,8 +322,8 @@ end.</font></p>
 </p>
 <p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
  lang="en-US"> <font face="Comic Sans MS, cursive">Remark that pascal
-has no infinit loop structure. ëWhile true doí will execute well, but
-if the compiler doesnít optimize this, a check will be performed each
+has no infinit loop structure. ‚ÄòWhile true do‚Äô will execute well, but
+if the compiler doesn‚Äôt optimize this, a check will be performed each
 loop. This will slow up the emulator considerabely.</font></p>
 <p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
  lang="en-US"> <br>
@@ -339,7 +339,7 @@ loop. This will slow up the emulator considerabely.</font></p>
 <p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
  lang="en-US"> <font face="Comic Sans MS, cursive">We can now put
 these lines together into an executable program. To bring the emulator
-in a defined state we will poke some valueís at the beginning of
+in a defined state we will poke some value‚Äôs at the beginning of
 memory, and set PC to zero. (or with other words: we will set a fake
 program in memory)</font></p>
 <p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
@@ -381,9 +381,9 @@ exit<br>
  lang="en-US"> <br>
 </p>
 <p class="western" style="margin-left: 0.75in; margin-bottom: 0in;"
- lang="en-US"> <font face="Comic Sans MS, cursive">Quite simple isnít
-it? The only thing we still need to do is to ëfill up the case
-instructioní with the machine code instructions for the 6510 processor.
+ lang="en-US"> <font face="Comic Sans MS, cursive">Quite simple isn‚Äôt
+it? The only thing we still need to do is to ‚Äòfill up the case
+instruction‚Äô with the machine code instructions for the 6510 processor.
 This will be done in Chapter 2</font></p>
 <p class="western" style="margin-left: 0.25in; margin-bottom: 0in;"
  lang="en-US"> <br>
