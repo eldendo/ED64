@@ -29,7 +29,7 @@ IO hardware in the C64 is memory mapped. This means that the user communicates w
 
    4. Implementation
    
-      1. Memory
+      i. Memory
       
          The user sees the memory as a 64k array of byte. In pascal we can define:
 
@@ -57,14 +57,14 @@ So when we change the implementation of the memory later on, and adapt the peek 
 
 See the complete code in the file memio.pas
 
-2. Processor registers
+ii. Processor registers
 The registers are simply declared in our main program:
 ```pascal
 var
     A,X,Y,S,P,IR : byte;
     PC : word;
 ```
-3. Processor main loop
+iii. Processor main loop
 The processor executes machine code programs. A machine code program is nothing else then a sequence of bytes somewhere in memory. The program counter (PC) is a 16 bit register that points to the next byte to be treated. The content of that memory location is copied in the instruction register (IR) and PC is incremented so that it points to the next memory location. The instruction in IR is then interpreted and the whole process is started again in an infinite loop.
 ```pascal
 while true do
@@ -81,7 +81,7 @@ end.
 ```
 Remark that pascal has no infinit loop structure. ‘While true do’ will execute well, but if the compiler doesn’t optimize this, a check will be performed each loop. This will slow up the emulator considerabely.
 
-4. The program
+iv. The program
 We can now put these lines together into an executable program. To bring the emulator in a defined state we will poke some value’s at the beginning of memory, and set PC to zero. (or with other words: we will set a fake program in memory)
 
 You can find the main program in the file ED64.pas
