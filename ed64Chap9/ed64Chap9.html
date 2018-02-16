@@ -26,26 +26,26 @@
 <p class="western"
  style="border: 1px solid rgb(0, 0, 0); padding: 0.01in 0.06in; margin-bottom: 0in;"
  align="center" lang="en-US">
-<font face="Comic Sans MS, cursive"><b>ED64 - HOW TO WRITE A
+<font face=" , cursive"><b>ED64 - HOW TO WRITE A
 COMMODORE 64 EMULATOR<br>
 By ir. Marc Dendooven</b></font><br>
 <br>
-<font face="Comic Sans MS, cursive"><b>Chapter 9: The VIC –
+<font face=" , cursive"><b>Chapter 9: The VIC –
 part 2 : color. </b></font>
 </p>
 <ol>
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+ face=" , cursive"><b>Introduction</b></font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">In the previous chapter we adapted the
+ face=" , cursive">In the previous chapter we adapted the
 memory access of the VIC. Now we will add color.</font></p>
   </li>
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Emulating color ram</b></font></p>
+ face=" , cursive"><b>Emulating color ram</b></font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">The color ram is a 1K nibble (4 bits)
+ face=" , cursive">The color ram is a 1K nibble (4 bits)
 memory. Although it is an independent memory chip, we will place it in
 the vic unit, since the vic uses it intensively:</font><br>
     </p>
@@ -54,7 +54,7 @@ the vic unit, since the vic uses it intensively:</font><br>
  lang="en-US"> <font face="Courier New, monospace">color_ram :
 array[$D800..$DBFF] of nibble;</font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">We also provide two access methods :</font><br>
+ face=" , cursive">We also provide two access methods :</font><br>
     </p>
   </li>
 </ol>
@@ -77,15 +77,15 @@ color_ram[address]<br>
 end;</font></p>
 <ol start="2">
   <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive">S<span style="">ince the color
+ face=" , cursive">S<span style="">ince the color
 ram appears in the io section of the memory map, these access methods
 are called the usual way from ioIn and ioOut.</span></font><br>
   </p>
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Using the color ram</b></font></p>
+ face=" , cursive"><b>Using the color ram</b></font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> <font
- face="Comic Sans MS, cursive">Now we can use color in vicText:</font><br>
+ face=" , cursive">Now we can use color in vicText:</font><br>
     </p>
   </li>
 </ol>
@@ -103,7 +103,7 @@ setPixel(x0+x,y0+y,reg[$D021])<br>
 end;</font></p>
 <ol start="3">
   <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><span style="">backgroundcolor can be
+ face=" , cursive"><span style="">backgroundcolor can be
 found in VIC register $D021.<br>
   <br>
 Now text is displayed in the right color. But what if someone alters
@@ -123,12 +123,12 @@ address-$D800+bankAddress+screenAddress))<br>
 end;</font></p>
 <ol start="3">
   <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><span style="">This is not efficient
+ face=" , cursive"><span style="">This is not efficient
 since most writes to the screen will be doubled that way. But it works.</span></font><br>
   </p>
   <li>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Conclusion<br>
+ face=" , cursive"><b>Conclusion<br>
     </b><span style="">Now we have color in our textmode. In the next
 chapter we will provide other vic modes : Hi resolution and multicolor
 modes.<br>
@@ -136,7 +136,7 @@ See listing in <a href="./memio.pas.html">memio.pas</a> and <a
  href="./vic.pas.html">vic.pas</a><br>
     </span></font></p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b><br>
+ face=" , cursive"><b><br>
     </b></font><br>
     </p>
     <p class="western" style="margin-bottom: 0in;" lang="en-US"> </p>
