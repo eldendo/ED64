@@ -26,51 +26,51 @@
 <p class="western"
  style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-bottom: 0cm;"
  align="center" lang="en-US">
-<font face="Comic Sans MS, cursive"><b>ED64 - HOW TO WRITE A
+<font face=" , cursive"><b>ED64 - HOW TO WRITE A
 COMMODORE 64 EMULATOR<br>
 Copyright 2006 by ir. Marc Dendooven</b></font><br>
 <br>
-<font face="Comic Sans MS, cursive"><b>Chapter 4 : Adding Input and
+<font face=" , cursive"><b>Chapter 4 : Adding Input and
 Output </b></font>
 </p>
 <p class="western" style="margin-bottom: 0cm;" lang="en-US"></p>
 <ol>
   <li>
     <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+ face=" , cursive"><b>Introduction</b></font></p>
   </li>
 </ol>
 <p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">In Chapter 1 we created a simple
+<font face=" , cursive">In Chapter 1 we created a simple
 emulator model an implemented it. In Chapter 2 we added the
 instruction set of the processor and created a working emulator of a
 6510 microprocessor.</font></p>
 <p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">In Chapter 3 we added the kernal
+<font face=" , cursive">In Chapter 3 we added the kernal
 rom and the basic rom which contain the operating sytem and the basic
 interpreter.</font></p>
 <p class="western" style="margin-left: 1.25cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">Now we will add minimal input and
+<font face=" , cursive">Now we will add minimal input and
 output. At the end of this chapter, we will obtain a working
 (minimal) emulator.</font></p>
 <ol start="2">
   <li>
     <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Text output.</b></font></p>
+ face=" , cursive"><b>Text output.</b></font></p>
     <ol>
       <li>
         <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Introduction.</b></font></p>
+ face=" , cursive"><b>Introduction.</b></font></p>
       </li>
     </ol>
   </li>
 </ol>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">The commodore 64 had, for his
+<font face=" , cursive">The commodore 64 had, for his
 time, very good graphics. High resolution, color, sprites, etc…
 For the moment we will only emulate text output the way the c64 works
 when switched on.</font></p>
@@ -78,13 +78,13 @@ when switched on.</font></p>
   <ol start="2">
     <li>
       <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Switching of the trace</b></font></p>
+ face=" , cursive"><b>Switching of the trace</b></font></p>
     </li>
   </ol>
 </ol>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">Since we will send text to the
+<font face=" , cursive">Since we will send text to the
 screen we should turn of the trace. Otherwise both textstreams will
 garble up with each other. You can change all the trace code in
 comments in the code to speed up the emulator.</font></p>
@@ -92,13 +92,13 @@ comments in the code to speed up the emulator.</font></p>
   <ol start="3">
     <li>
       <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Emulation model</b></font></p>
+ face=" , cursive"><b>Emulation model</b></font></p>
     </li>
   </ol>
 </ol>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">Graphics on the c64 is handled by
+<font face=" , cursive">Graphics on the c64 is handled by
 the VIC chip. The VIC works autonomous from the rest of the system to
 generate a video signal. To now what to display, the VIC shares the
 memory with the processor and can look into the memory. This is hard
@@ -110,13 +110,13 @@ displayed on the screen. </font>
   <ol start="4">
     <li>
       <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Implementation</b></font></p>
+ face=" , cursive"><b>Implementation</b></font></p>
     </li>
   </ol>
 </ol>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">This can be done by implementing
+<font face=" , cursive">This can be done by implementing
 the poke events the same way we did with the peeks. Assuming we have
 a procedure ‘vicText’ witch displays a char at a screen
 position:</font></p>
@@ -134,11 +134,11 @@ vicText(address-$400,value)<br>
 end;</font></p>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">remark that the poke is not
+<font face=" , cursive">remark that the poke is not
 replaced by this action (like in the peek), but is added to it.</font></p>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">In FreePascal we will use the CRT
+<font face=" , cursive">In FreePascal we will use the CRT
 library unit to use textio. This library has a procedure gotoXY to
 position text on the screen.</font></p>
 <p class="western"
@@ -153,13 +153,13 @@ div 40)+1);<br>
 end;</font></p>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">since the c64 doesn’t use
+<font face=" , cursive">since the c64 doesn’t use
 ascii for it’s text, we will use a conversion table (simply an
 array with the c64 characters). Since not all the c64 characters
 exist in a standard font, we will use a reduced set.</font></p>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">To use inversed characters, we
+<font face=" , cursive">To use inversed characters, we
 can extend vicText to:</font></p>
 <p class="western"
  style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 1.91cm; margin-bottom: 0cm;"
@@ -191,25 +191,25 @@ div 40)+1);<br>
 end;</font></p>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">the value of textAttr contains
+<font face=" , cursive">the value of textAttr contains
 the for- and background color to be used. The values used are
 lightblue and lightcyan, an aproximation of the startcolours of the C64.</font></p>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">See <a href="./vic.pas.html">vic.pas</a>
+<font face=" , cursive">See <a href="./vic.pas.html">vic.pas</a>
 for the complete
 implementation.</font></p>
 <ol>
   <ol start="5">
     <li>
       <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Conclusion</b></font></p>
+ face=" , cursive"><b>Conclusion</b></font></p>
     </li>
   </ol>
 </ol>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">When we execute the program, we
+<font face=" , cursive">When we execute the program, we
 see the starting screen of a C64. If you want you can change the
 parameters (font, number of lines or colums) of your console to add
 more look and feel of a real c64)</font></p>
@@ -219,24 +219,24 @@ more look and feel of a real c64)</font></p>
  border="0" height="238" width="332"></p>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">Example 40x25, 8x8 fonts on
+<font face=" , cursive">Example 40x25, 8x8 fonts on
 windows XP. Also the 16 x 12 font gives a good look. </font>
 </p>
 <ol start="3">
   <li>
     <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Keyboard input.</b></font></p>
+ face=" , cursive"><b>Keyboard input.</b></font></p>
     <ol>
       <li>
         <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Introduction</b></font></p>
+ face=" , cursive"><b>Introduction</b></font></p>
       </li>
     </ol>
   </li>
 </ol>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">Keyboard input happens the
+<font face=" , cursive">Keyboard input happens the
 following way: 50 times in a second an interrupt is generated. The
 standard IRQ routine scans the keyboard through one of the CIA's
 (Complex interface Adaptor), and, if a key is pressed, puts the
@@ -249,13 +249,13 @@ key straight in the keyboard buffer ? </font>
   <ol start="2">
     <li>
       <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Writing in the keyboard buffer</b></font></p>
+ face=" , cursive"><b>Writing in the keyboard buffer</b></font></p>
     </li>
   </ol>
 </ol>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">The keyboard buffer can be found
+<font face=" , cursive">The keyboard buffer can be found
 at location $0277, and is 10 bytes long. The nr of items in the
 buffer is stored at location $C6. With the CRT unit the keyboard can
 be read. The following procedure adds a key to the keyboardbuffer.</font></p>
@@ -285,7 +285,7 @@ ord(upcase(readkey));<br>
 <font face="Courier New, monospace">end;</font></p>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">And we can call this procedure
+<font face=" , cursive">And we can call this procedure
 from the main loop when a key is pressed :</font></p>
 <p class="western" style="margin-bottom: 0cm;" lang="en-US"> </p>
 <p class="western"
@@ -296,23 +296,23 @@ from the main loop when a key is pressed :</font></p>
   <ol start="3">
     <li>
       <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>A working emulator !</b></font></p>
+ face=" , cursive"><b>A working emulator !</b></font></p>
     </li>
   </ol>
 </ol>
 <p class="western" style="margin-left: 1.91cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">At last we have a usable
+<font face=" , cursive">At last we have a usable
 emulator! Type in some basic programs to test them out !</font></p>
 <ol>
   <ol start="4">
     <li>
       <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Optimisations</b></font></p>
+ face=" , cursive"><b>Optimisations</b></font></p>
       <ol>
         <li>
           <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Emulator speed</b></font></p>
+ face=" , cursive"><b>Emulator speed</b></font></p>
         </li>
       </ol>
     </li>
@@ -320,7 +320,7 @@ emulator! Type in some basic programs to test them out !</font></p>
 </ol>
 <p class="western" style="margin-left: 2.5cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">You will have remarked at the
+<font face=" , cursive">You will have remarked at the
 startupsequence that the emulator has slowed down a lot. Indeed we
 test the keyboard every emulator turn. That is not necessary. We will
 add a counter. The counter is decremented each loop en only when
@@ -337,10 +337,10 @@ if count=0 then<br>
 </p>
 <p class="western" style="margin-left: 2.5cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">Now the emulator is much faster.</font></p>
+<font face=" , cursive">Now the emulator is much faster.</font></p>
 <p class="western" style="margin-left: 2.5cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">since count is a word, the
+<font face=" , cursive">since count is a word, the
 keyboard is checked only every 2^16 = 65536 loops. This gives an idea
 of the emulator speed. If on your computer this is too slow, you can
 take a lesser value by resetting the counter to a preset value when
@@ -354,14 +354,14 @@ the counter reaches zero. </font>
     <ol start="2">
       <li>
         <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>The cursor</b></font></p>
+ face=" , cursive"><b>The cursor</b></font></p>
       </li>
     </ol>
   </ol>
 </ol>
 <p class="western" style="margin-left: 2.5cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">You might have noticed that the
+<font face=" , cursive">You might have noticed that the
 cursor is not on the right place. This is because the cursor is not
 the c64 cursor, but the cursor of the console. Since the c64 cursor
 is treated by the interrupt routine, it is not updated here. We will
@@ -378,7 +378,7 @@ then addkey;<br>
 end</font></p>
 <p class="western" style="margin-left: 2.5cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">By specifying </font>
+<font face=" , cursive">By specifying </font>
 </p>
 <p class="western"
  style="border: 1px solid rgb(0, 0, 0); padding: 0.04cm 0.14cm; margin-left: 2.5cm; margin-bottom: 0cm;"
@@ -386,14 +386,14 @@ end</font></p>
 <font face="Courier New, monospace">cursorBig;</font></p>
 <p class="western" style="margin-left: 2.5cm; margin-bottom: 0cm;"
  lang="en-US">
-<font face="Comic Sans MS, cursive">We add to the c64 look and feel.</font></p>
+<font face=" , cursive">We add to the c64 look and feel.</font></p>
 <ol start="4">
   <ol start="5" style="list-style-type: decimal;">
     <li>
       <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Conclusions</b></font></p>
+ face=" , cursive"><b>Conclusions</b></font></p>
       <p class="western" style="margin-bottom: 0cm;" lang="en-US"> <font
- face="Comic Sans MS, cursive">We added keyboard access in a few lines,
+ face=" , cursive">We added keyboard access in a few lines,
 but we did something very ugly: our program emulated not only hardware,
 but also software (the standard IRQ routine). If a c64 program tries to
 replace this routine, this won't work ! Using the cursor of the CRT
@@ -406,9 +406,9 @@ updated by the interrupt routine. </font> </p>
   </ol>
   <li>
     <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Loading and saving programs.</b></font></p>
+ face=" , cursive"><b>Loading and saving programs.</b></font></p>
     <p class="western" style="margin-bottom: 0cm;" lang="en-US"> <font
- face="Comic Sans MS, cursive">Now we can enter programs in ED64. But
+ face=" , cursive">Now we can enter programs in ED64. But
 that is not very usefull if we can not save and reload them. We added
 some routines to save and load programs (with .prg extention)
 immediately to memory. The first two bytes in a .prg file are the
@@ -496,7 +496,7 @@ to_address do write(f,peek(i));<br>
 end;</font></p>
 <p class="western" style="margin-bottom: 0cm; widows: 2; orphans: 2;"
  lang="fr-FR"> </p>
-<div style="margin-left: 40px;"><font face="Comic Sans MS, cursive">These
+<div style="margin-left: 40px;"><font face=" , cursive">These
 programs are called from a extended version of the addkey procedure
 (see ed64.pas) : the procedure checks for special keys and translates
 them: so we can use the cursor keys and the insert key. F11 activates
@@ -507,9 +507,9 @@ LOAD “file”,x,1) and F12 activates the save routine. </font></div>
 <ol start="5">
   <li>
     <p class="western" style="margin-bottom: 0cm;" lang="en-US"><font
- face="Comic Sans MS, cursive"><b>Conclusions</b></font></p>
+ face=" , cursive"><b>Conclusions</b></font></p>
     <p class="western" style="margin-bottom: 0cm;" lang="en-US"> <font
- face="Comic Sans MS, cursive">In this chapter we made a working C64
+ face=" , cursive">In this chapter we made a working C64
 emulator. A program '<a href="./sin.prg">sin.prg</a>' is added. Try it
 out or write some of
 your own programs.<br>
