@@ -2,14 +2,14 @@
  Copyright 2007 ir. Marc Dendooven  
  Chapter 1: Introduction and Emulator Model
 
-1. Introduction  
+## Introduction  
 
    This document describes how to build a simple Commodore 64 emulator. You may wonder why someone should spend time writing an emulator of an old machine of which a lot of emulators already exists. The answer is simple: because it is fun! 
 The main purpose of these documents is to let the reader see how an emulator is build. Therefore we will emphasis on writing clear, understandable code and not on performance. So if you are not interested in the internals of this emulator, but just want to execute C64 programs I suggest that you use a proven emulator like CCS64.
 This document will contain different chapters. Each Chapter will add something to the emulator and will end with an executable program. 
 In this first chapter we will establish a simple model for the emulator and show how this can be programmed.
 
-2. Requirements
+## Requirements
 
    1. Information
 
@@ -27,9 +27,9 @@ This is quite simple: the user sees the registers in the processor (6 registers 
 
 IO hardware in the C64 is memory mapped. This means that the user communicates with it by writing to, or reading from certain memory locations in the memory map. So it is transparent in the user model. At first we will not implement other hardware than the processor and the memory. Later we will add what is necessary. 
 
-   4. Implementation
+## Implementation
    
-      i. Memory
+   1. Memory
       
          The user sees the memory as a 64k array of byte. In pascal we can define:
 
@@ -57,14 +57,14 @@ So when we change the implementation of the memory later on, and adapt the peek 
 
 See the complete code in the file memio.pas
 
-ii. Processor registers
+2. Processor registers
 The registers are simply declared in our main program:
 ```pascal
 var
     A,X,Y,S,P,IR : byte;
     PC : word;
 ```
-iii. Processor main loop
+3. Processor main loop
 The processor executes machine code programs. A machine code program is nothing else then a sequence of bytes somewhere in memory. The program counter (PC) is a 16 bit register that points to the next byte to be treated. The content of that memory location is copied in the instruction register (IR) and PC is incremented so that it points to the next memory location. The instruction in IR is then interpreted and the whole process is started again in an infinite loop.
 ```pascal
 while true do
