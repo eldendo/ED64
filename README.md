@@ -17,4 +17,4 @@ A tutorial about writing a Commodore 64 Emulator (and a c64 emulator)
 or look at the old site: https://web.archive.org/web/20080112195019/http://ed64.eldendo.be/  
 
 
-![screenshot](./Chapter10/ed64.png)
+![screenshot](./ed64.png)
