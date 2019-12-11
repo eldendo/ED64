@@ -12,8 +12,9 @@ A tutorial about writing a Commodore 64 Emulator (and a c64 emulator)
 [Chapter8](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap8/ed64Chap8.html)  
 [Chapter9](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap9/ed64Chap9.html)  
 [Chapter10](http://htmlpreview.github.io/?https://github.com/eldendo/ED64/blob/master/ed64Chap10/ed64Chap10.html)  
+[Chapter11 - conclusion](./Chapter11/Chapter11.md)  
 
 or look at the old site: https://web.archive.org/web/20080112195019/http://ed64.eldendo.be/  
 
 
-![screenshot](./ed64.png)
+![screenshot](./Chapter11/ed64.png)
