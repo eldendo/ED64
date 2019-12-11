@@ -19,4 +19,4 @@ Have fun with it !
 
 I hope you will follow my new project (probably called Commander64). Thanks for the interest in my projects.
 
-(you can find the code here)[./ed64Chapter11]
+[you can find the code here](./ed64Chapter11)
