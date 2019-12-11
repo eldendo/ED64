@@ -19,4 +19,3 @@ Have fun with it !
 
 I hope you will follow my new project (probably called Commander64). Thanks for the interest in my projects.
 
-> Written with [StackEdit](https://stackedit.io/).
