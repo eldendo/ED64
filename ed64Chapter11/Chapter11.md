@@ -25,7 +25,7 @@ And there is A LOT not implemented... (like sound, sprites, ... )
 
 Have fun with it !
 
-I hope you will follow my new project (probably called Commander64). Thanks for the interest in my projects.
+I hope you will follow my new project (probably called [Commander64](../../Commander64)). Thanks for the interest in my projects.
 
 [you can find the code here](./)
 
