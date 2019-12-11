@@ -1,8 +1,8 @@
 (*****************************************************************
 * SystemAbstraction unit                                         *
 * This file is part of ED64                                      *
-* Copyright (c) 2006 - 2009 by ir. Marc Dendooven                *
-* Version: Chapter 10 (same as chapter 9)                        *
+* Copyright (c) 2006 - 2019 by ir. Marc Dendooven                *
+* Version: Chapter 11                                            *
 *****************************************************************)
 Unit SystemAbstraction;
 
@@ -146,7 +146,7 @@ end;
 function aKeyPressed : boolean;
 begin
     aKeyPressed := keyPressed;
-    delay(5)
+//  delay(5)
 end;
 
 function aReadKey : char;
