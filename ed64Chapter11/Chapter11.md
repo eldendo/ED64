@@ -15,8 +15,8 @@ I changed the graphics library from winGraph to ptcGraph. This has two advantage
 - ptcGraph is included in the freePascal distribution. So no need to look for and link with an external library
 - ptcGraph works not only on windows but also on GNU/linux (and probably also on other systems). In 2006 I used m$ windows but like every sane person I switched permanently to a better environment.
 
-load is now under F1
-load ,8,1 is now under F2
+load is now under F1  
+load ,8,1 is now under F2  
 save is under F3
 
 There are some bugfixes I did in the last 10years I don't remember...
